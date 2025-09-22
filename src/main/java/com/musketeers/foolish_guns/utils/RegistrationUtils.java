@@ -20,7 +20,7 @@ public class RegistrationUtils {
      * @return The item itself
      * @implNote registerItem('sword', SwordItem::new, new Item.Properties() )
      * **/
-    public static Item registerItem(String itemName, Function<Item.Properties, Item> itemFactory, Item.Properties itemProperties){
+    public static <I extends Item> I registerItem(String itemName, Function<Item.Properties, I> itemFactory, Item.Properties itemProperties){
         ResourceLocation resourceLocation = ResourceLocation.fromNamespaceAndPath(MOD_ID,itemName);
         ResourceKey<Item> resourceKey = ResourceKey.create(Registries.ITEM, resourceLocation);
 
