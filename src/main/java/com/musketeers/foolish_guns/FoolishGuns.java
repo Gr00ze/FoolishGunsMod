@@ -4,6 +4,7 @@ import net.fabricmc.api.ModInitializer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import static com.musketeers.foolish_guns.items.ItemList.onInit;
 
 public class FoolishGuns implements ModInitializer {
 	public static final String MOD_ID = "foolish-guns";
@@ -20,5 +21,6 @@ public class FoolishGuns implements ModInitializer {
 		// Proceed with mild caution.
 
 		LOGGER.info("Hello Fabric world!");
+        onInit();
 	}
 }
