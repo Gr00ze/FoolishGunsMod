@@ -1,6 +1,5 @@
 package com.musketeers.foolish_guns.utils;
 
-import net.fabricmc.fabric.api.item.v1.FabricItem;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -28,4 +27,5 @@ public class RegistrationUtils {
         itemProperties.setId(resourceKey);
         return Registry.register(BuiltInRegistries.ITEM, resourceKey, itemFactory.apply(itemProperties));
     }
+
 }

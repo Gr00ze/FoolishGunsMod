@@ -28,7 +28,7 @@ public class FoolishGunsDataGenerator implements DataGeneratorEntrypoint {
 
         @Override
         public void generateItemModels(ItemModelGenerators itemModelGenerators) {
-            itemModelGenerators.declareCustomModelItem(ItemList.PROTOTYPE_GUN);
+            itemModelGenerators.declareCustomModelItem(ItemList.PROTOTYPE_GUN_ITEM);
         }
     }
 }
