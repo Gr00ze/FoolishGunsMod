@@ -20,6 +20,6 @@
     }
   },
   "textures": {
-    "particle": "foolish_guns:item/texture"
+    "particle": "foolish_guns:item/prototype_gun_item"
   }
 }
