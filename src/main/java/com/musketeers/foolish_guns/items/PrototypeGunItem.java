@@ -1,6 +1,12 @@
 package com.musketeers.foolish_guns.items;
 
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.NotNull;
 import software.bernie.geckolib.animatable.GeoItem;
 import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.animatable.manager.AnimatableManager;
@@ -8,12 +14,15 @@ import software.bernie.geckolib.animatable.processing.AnimationController;
 import software.bernie.geckolib.animation.PlayState;
 import software.bernie.geckolib.animation.RawAnimation;
 import software.bernie.geckolib.util.GeckoLibUtil;
+import java.util.function.Consumer;
 
 public class PrototypeGunItem extends Item implements GeoItem {
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
-    private static final RawAnimation ACTIVATE_ANIM = RawAnimation.begin().thenPlay("use.activate");
+    private static final RawAnimation ACTIVATE_ANIM = RawAnimation.begin().thenPlay("animation.model.new");
     public PrototypeGunItem(Properties properties) {
+
         super(properties);
+        GeoItem.registerSyncedAnimatable(this);
     }
 
     @Override
@@ -25,4 +34,28 @@ public class PrototypeGunItem extends Item implements GeoItem {
     public AnimatableInstanceCache getAnimatableInstanceCache() {
         return cache;
     }
+
+    Object provider = null;
+    public void injectRenderProvider(Object provider){
+        this.provider = provider;
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public void createGeoRenderer(Consumer consumer) {
+        System.out.println("Provider is "+ provider);
+        if (provider == null)return;
+        consumer.accept(provider);
+
+    }
+
+    @Override
+    public @NotNull InteractionResult use(Level level, Player player, InteractionHand hand) {
+        if (level instanceof ServerLevel serverLevel)
+            triggerAnim(player, GeoItem.getOrAssignId(player.getItemInHand(hand), serverLevel), "Activation", "activate");
+        return super.use(level, player, hand);
+    }
+
+
+
 }
