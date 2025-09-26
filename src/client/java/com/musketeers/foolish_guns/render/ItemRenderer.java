@@ -6,16 +6,19 @@ import software.bernie.geckolib.animatable.client.GeoRenderProvider;
 import software.bernie.geckolib.renderer.GeoItemRenderer;
 
 public class ItemRenderer {
-     public static void init() {
-         ItemList.PROTOTYPE_GUN_ITEM.injectRenderProvider(new GeoRenderProvider() {
-             private GunRenderer renderer;
+     public static <R extends GeoItemRenderer<?>> GeoRenderProvider getItemRenderProvider(R geoItemRenderer){
+         return new GeoRenderProvider() {
+             private R renderer;
 
              @Override
              public GeoItemRenderer<?> getGeoItemRenderer() {
-                 if (renderer == null) renderer = new GunRenderer();
+                 if (renderer == null) renderer = geoItemRenderer;
                  return renderer;
              }
-         });
+         };
+     }
+     public static void init() {
+         ItemList.PROTOTYPE_GUN_ITEM.injectRenderProvider(getItemRenderProvider(new GunRenderer()));
         /*
          ClientTickEvents.END_CLIENT_TICK.register(client -> {
              if (client.player == null) return;
