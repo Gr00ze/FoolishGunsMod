@@ -1,6 +1,7 @@
 package com.musketeers.foolish_guns.render;
 
 import com.musketeers.foolish_guns.items.ItemList;
+import com.musketeers.foolish_guns.render.item.GunRenderer;
 import software.bernie.geckolib.animatable.client.GeoRenderProvider;
 import software.bernie.geckolib.renderer.GeoItemRenderer;
 

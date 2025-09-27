@@ -1,4 +1,4 @@
-package com.musketeers.foolish_guns.render;
+package com.musketeers.foolish_guns.model;
 
 import com.musketeers.foolish_guns.items.PrototypeGunItem;
 import net.minecraft.resources.ResourceLocation;

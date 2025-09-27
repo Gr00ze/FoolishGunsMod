@@ -3,9 +3,12 @@ package com.musketeers.foolish_guns.items;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import software.bernie.geckolib.animatable.GeoItem;
 import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
@@ -57,5 +60,7 @@ public class PrototypeGunItem extends Item implements GeoItem {
     }
 
 
-
+    public void shoot(Level level, Player player, ItemStack mainHandItem) {
+        player.move(MoverType.PLAYER, new Vec3(0,10,0));
+    }
 }
