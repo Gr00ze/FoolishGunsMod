@@ -1,10 +1,17 @@
 package com.musketeers.foolish_guns.utils;
 
+import com.musketeers.foolish_guns.entities.Bullet;
+import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
+import net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry;
+import net.fabricmc.fabric.api.object.builder.v1.entity.FabricEntityTypeBuilder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.item.Item;
 
 import java.util.function.Function;
@@ -27,5 +34,14 @@ public class RegistrationUtils {
         itemProperties.setId(resourceKey);
         return Registry.register(BuiltInRegistries.ITEM, resourceKey, itemFactory.apply(itemProperties));
     }
-
+    public static <E extends EntityType<? extends Entity>> E registerEntity(String entityName, EntityType.EntityFactory test){
+        ResourceLocation resourceLocation = ResourceLocation.fromNamespaceAndPath(MOD_ID,entityName);
+        ResourceKey<EntityType<?>> resourceKey = ResourceKey.create(Registries.ENTITY_TYPE, resourceLocation);
+        EntityType<?> entityType = EntityType.Builder.createNothing(MobCategory.MISC)
+                .sized(0.5f,0.5f)
+                .clientTrackingRange(4)
+                .updateInterval(10)
+                .build(resourceKey);
+        return (E)Registry.register(BuiltInRegistries.ENTITY_TYPE, resourceKey, entityType);
+    }
 }
