@@ -37,7 +37,7 @@ public class RegistrationUtils {
     public static <E extends EntityType<? extends Entity>> E registerEntity(String entityName, EntityType.EntityFactory test){
         ResourceLocation resourceLocation = ResourceLocation.fromNamespaceAndPath(MOD_ID,entityName);
         ResourceKey<EntityType<?>> resourceKey = ResourceKey.create(Registries.ENTITY_TYPE, resourceLocation);
-        EntityType<?> entityType = EntityType.Builder.createNothing(MobCategory.MISC)
+        EntityType<?> entityType = EntityType.Builder.of(test, MobCategory.MISC)
                 .sized(0.5f,0.5f)
                 .clientTrackingRange(4)
                 .updateInterval(10)
