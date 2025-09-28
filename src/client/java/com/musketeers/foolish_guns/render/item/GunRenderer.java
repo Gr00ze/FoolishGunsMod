@@ -31,10 +31,10 @@ public class GunRenderer<T extends Item & GeoAnimatable> extends GeoItemRenderer
     public GunRenderer() {
         super(new GunModel());
     }
-    private final ResourceLocation texture = ResourceLocation.fromNamespaceAndPath(MOD_ID, "textures/item/prototype_gun_item.png");
     @Override
     public void render(GeoRenderState renderState, PoseStack poseStack, MultiBufferSource bufferSource) {
-        super.render(renderState,poseStack, bufferSource);
+        //super.render(renderState,poseStack, bufferSource);
+        renderGecko(renderState,poseStack,bufferSource);
         /*
         RenderType renderType = RenderType.entityCutoutNoCull(texture);
         VertexConsumer vertexConsumer = ItemRenderer.getFoilBuffer(bufferSource, renderType, false, renderState.getGeckolibData(DataTickets.HAS_GLINT));
@@ -56,8 +56,20 @@ public class GunRenderer<T extends Item & GeoAnimatable> extends GeoItemRenderer
         }
         else {
             RenderType renderType = getRenderType(renderState, getTextureLocation(renderState));
-            VertexConsumer buffer = renderType == null ? null : ItemRenderer.getFoilBuffer(bufferSource, renderType, false, renderState.getGeckolibData(DataTickets.HAS_GLINT));
+            //VertexConsumer buffer = renderType == null ? null : ItemRenderer.getFoilBuffer(bufferSource, renderType, false, renderState.getGeckolibData(DataTickets.HAS_GLINT));
+            VertexConsumer buffer = renderType == null ? null : ItemRenderer.getFoilBuffer(bufferSource, RenderType.endGateway(), false, renderState.getGeckolibData(DataTickets.HAS_GLINT));
+            poseStack.pushPose();
+            //poseStack.scale(9,9,9);
 
+            buffer.addVertex(poseStack.last().pose(), 0,0,0).setColor(-1).setOverlay(655360).setLight(15728640).setNormal(0.5f,0.5f,0.5f);
+            buffer.addVertex(poseStack.last().pose(),2,0,2).setColor(-1).setOverlay(655360).setLight(15728640).setNormal(0.5f,0.5f,0.5f);
+            buffer.addVertex(poseStack.last().pose(),0,0,2).setColor(-1).setOverlay(655360).setLight(15728640).setNormal(0.5f,0.5f,0.5f);
+            buffer.addVertex(poseStack.last().pose(),2,0,0).setColor(-1).setOverlay(655360).setLight(15728640).setNormal(0.5f,0.5f,0.5f);
+
+            //buffer.addVertex(poseStack.last().pose(),0,1,2).setColor(-1).setOverlay(655360).setLight(15728640).setNormal(0.5f,0.5f,0.5f);
+            //buffer.addVertex(poseStack.last().pose(),2,1,2).setColor(-1).setOverlay(655360).setLight(15728640).setNormal(0.5f,0.5f,0.5f);
+
+            poseStack.popPose();
 
 
             //defaultRender(renderState, poseStack, bufferSource, renderType, buffer);
@@ -155,7 +167,7 @@ public class GunRenderer<T extends Item & GeoAnimatable> extends GeoItemRenderer
                             poseStack.popPose();
                         }
                         //renderCubesOfBone(renderState, bone, poseStack, buffer, packedLight, packedOverlay, renderColor);
-                        //renderChildBones(renderState, bone, poseStack, renderType, bufferSource, buffer, false, packedLight, packedOverlay, renderColor);
+                        renderChildBones(renderState, bone, poseStack, renderType, bufferSource, buffer, false, packedLight, packedOverlay, renderColor);
                         poseStack.popPose();
                         //renderRecursively(renderState, poseStack, bone, renderType, bufferSource, buffer, false, packedLight, packedOverlay, renderColor);
 
@@ -176,15 +188,15 @@ public class GunRenderer<T extends Item & GeoAnimatable> extends GeoItemRenderer
 
 
                 //
-                applyRenderLayers(renderState, poseStack, model, renderType, bufferSource, buffer, packedLight, packedOverlay, renderColor);
-                postRender(renderState, poseStack, model, bufferSource, buffer, false, packedLight, packedOverlay, renderColor);
-                firePostRenderEvent(renderState, poseStack, model, bufferSource);
+                //applyRenderLayers(renderState, poseStack, model, renderType, bufferSource, buffer, packedLight, packedOverlay, renderColor);
+                //postRender(renderState, poseStack, model, bufferSource, buffer, false, packedLight, packedOverlay, renderColor);
+                //firePostRenderEvent(renderState, poseStack, model, bufferSource);
             }
 
             poseStack.popPose();
 
-            renderFinal(renderState, poseStack, model, bufferSource, buffer, packedLight, packedOverlay, renderColor);
-            doPostRenderCleanup();
+            //renderFinal(renderState, poseStack, model, bufferSource, buffer, packedLight, packedOverlay, renderColor);
+            //doPostRenderCleanup();
         }
 
 
