@@ -12,6 +12,7 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.state.EntityRenderState;
+import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
 
@@ -32,7 +33,7 @@ public class BulletRenderer extends EntityRenderer<Bullet,EntityRenderState> {
     public void render(EntityRenderState entityRenderState, PoseStack poseStack, MultiBufferSource multiBufferSource, int i) {
         super.render(entityRenderState, poseStack, multiBufferSource, i);
         poseStack.pushPose();
-        model.renderToBuffer(poseStack, multiBufferSource.getBuffer(RenderType.entityCutoutNoCull(BULLET_MODEL_TEXTURE)), i, 1, 0xFFFFFF);
+        model.renderToBuffer(poseStack, multiBufferSource.getBuffer(RenderType.entityCutoutNoCull(BULLET_MODEL_TEXTURE)), i, OverlayTexture.NO_OVERLAY);
         poseStack.popPose();
     }
 
