@@ -19,7 +19,7 @@ import static com.musketeers.foolish_guns.utils.RegistrationUtils.id;
 
 public class BulletRenderer extends EntityRenderer<Bullet,EntityRenderState> {
     public static ModelLayerLocation BULLET_MODEL_LAYER = new ModelLayerLocation(id("model"),"main");
-    public static ResourceLocation BULLET_MODEL_TEXTURE = id("");
+    public static ResourceLocation BULLET_MODEL_TEXTURE = id("textures/item/bullet_texture.png");
 
     public EntityModel<EntityRenderState> model;
 
@@ -32,7 +32,7 @@ public class BulletRenderer extends EntityRenderer<Bullet,EntityRenderState> {
     public void render(EntityRenderState entityRenderState, PoseStack poseStack, MultiBufferSource multiBufferSource, int i) {
         super.render(entityRenderState, poseStack, multiBufferSource, i);
         poseStack.pushPose();
-        model.renderToBuffer(poseStack, multiBufferSource.getBuffer(RenderType.armorEntityGlint()), 0, 0);
+        model.renderToBuffer(poseStack, multiBufferSource.getBuffer(RenderType.entityCutoutNoCull(BULLET_MODEL_TEXTURE)), i, 1, 0xFFFFFF);
         poseStack.popPose();
     }
 
