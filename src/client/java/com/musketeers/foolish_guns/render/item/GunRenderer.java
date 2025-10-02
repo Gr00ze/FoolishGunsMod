@@ -4,6 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.musketeers.foolish_guns.items.PrototypeGunItem;
 import com.musketeers.foolish_guns.model.GunModel;
+import com.musketeers.foolish_guns.render.RenderTest;
 import it.unimi.dsi.fastutil.Pair;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
@@ -33,19 +34,11 @@ public class GunRenderer<T extends Item & GeoAnimatable> extends GeoItemRenderer
     }
     @Override
     public void render(GeoRenderState renderState, PoseStack poseStack, MultiBufferSource bufferSource) {
-        //super.render(renderState,poseStack, bufferSource);
-        renderGecko(renderState,poseStack,bufferSource);
-        /*
-        RenderType renderType = RenderType.entityCutoutNoCull(texture);
-        VertexConsumer vertexConsumer = ItemRenderer.getFoilBuffer(bufferSource, renderType, false, renderState.getGeckolibData(DataTickets.HAS_GLINT));
-        poseStack.pushPose();
-        poseStack.scale(9,9,9);
-        vertexConsumer.addVertex(0.5f,0.2f,0.5f).setColor(-1).setUv(0,0).setOverlay(13131231).setLight(313131).setNormal(0.5f,0.5f,0.5f);
-        vertexConsumer.addVertex(0.2f,0.5f,0.5f).setColor(-1).setUv(0,0).setOverlay(13131231).setLight(313131).setNormal(0.5f,0.5f,0.5f);
-        vertexConsumer.addVertex(0.2f,0.5f,0.5f).setColor(-1).setUv(0,0).setOverlay(13131231).setLight(313131).setNormal(0.5f,0.5f,0.5f);
-        vertexConsumer.addVertex(0.5f,0.2f,0.5f).setColor(-1).setUv(0,0).setOverlay(13131231).setLight(313131).setNormal(0.5f,0.5f,0.5f);
-        poseStack.popPose();
-        */
+        super.render(renderState,poseStack, bufferSource);
+        //renderGecko(renderState,poseStack,bufferSource);
+
+        //RenderTest.test0(renderState,poseStack,bufferSource);
+        //RenderTest.exampleTessellatorRGBTriangle(new Vector3f(0,0,0),poseStack);
 
     }
 
@@ -61,10 +54,10 @@ public class GunRenderer<T extends Item & GeoAnimatable> extends GeoItemRenderer
             poseStack.pushPose();
             //poseStack.scale(9,9,9);
 
-            buffer.addVertex(poseStack.last().pose(), 0,0,0).setColor(-1).setOverlay(655360).setLight(15728640).setNormal(0.5f,0.5f,0.5f);
-            buffer.addVertex(poseStack.last().pose(),2,0,2).setColor(-1).setOverlay(655360).setLight(15728640).setNormal(0.5f,0.5f,0.5f);
-            buffer.addVertex(poseStack.last().pose(),0,0,2).setColor(-1).setOverlay(655360).setLight(15728640).setNormal(0.5f,0.5f,0.5f);
-            buffer.addVertex(poseStack.last().pose(),2,0,0).setColor(-1).setOverlay(655360).setLight(15728640).setNormal(0.5f,0.5f,0.5f);
+//            buffer.addVertex(poseStack.last().pose(), 0,0,0).setColor(-1).setOverlay(655360).setLight(15728640).setNormal(0.5f,0.5f,0.5f);
+//            buffer.addVertex(poseStack.last().pose(),2,0,2).setColor(-1).setOverlay(655360).setLight(15728640).setNormal(0.5f,0.5f,0.5f);
+//            buffer.addVertex(poseStack.last().pose(),0,0,2).setColor(-1).setOverlay(655360).setLight(15728640).setNormal(0.5f,0.5f,0.5f);
+//            buffer.addVertex(poseStack.last().pose(),2,0,0).setColor(-1).setOverlay(655360).setLight(15728640).setNormal(0.5f,0.5f,0.5f);
 
             //buffer.addVertex(poseStack.last().pose(),0,1,2).setColor(-1).setOverlay(655360).setLight(15728640).setNormal(0.5f,0.5f,0.5f);
             //buffer.addVertex(poseStack.last().pose(),2,1,2).setColor(-1).setOverlay(655360).setLight(15728640).setNormal(0.5f,0.5f,0.5f);
