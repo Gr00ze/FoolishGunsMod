@@ -21,10 +21,11 @@ import java.util.function.Consumer;
 
 public class PrototypeGunItem extends Item implements GeoItem {
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
-    private static final RawAnimation ACTIVATE_ANIM = RawAnimation.begin().thenPlay("animation.gun_model.new");
+    private static final RawAnimation ACTIVATE_ANIM = RawAnimation.begin().thenPlay("animation.gun_model.tesla");
     public PrototypeGunItem(Properties properties) {
 
         super(properties);
+
         GeoItem.registerSyncedAnimatable(this);
     }
 
