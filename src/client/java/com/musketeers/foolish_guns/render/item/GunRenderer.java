@@ -35,14 +35,14 @@ public class GunRenderer<T extends Item & GeoAnimatable> extends GeoItemRenderer
     @Override
     public void render(GeoRenderState renderState, PoseStack poseStack, MultiBufferSource bufferSource) {
         super.render(renderState,poseStack, bufferSource);
-        //renderGecko(renderState,poseStack,bufferSource);
+        //extendedRenderGecko(renderState,poseStack,bufferSource);
 
         //RenderTest.test0(renderState,poseStack,bufferSource);
         //RenderTest.exampleTessellatorRGBTriangle(new Vector3f(0,0,0),poseStack);
 
     }
 
-    public void renderGecko(GeoRenderState renderState, PoseStack poseStack, MultiBufferSource bufferSource){
+    public void extendedRenderGecko(GeoRenderState renderState, PoseStack poseStack, MultiBufferSource bufferSource){
         //super.render()
         if (renderState.getGeckolibData(DataTickets.ITEM_RENDER_PERSPECTIVE) == ItemDisplayContext.GUI) {
             renderInGui(renderState, poseStack, bufferSource);
@@ -50,7 +50,8 @@ public class GunRenderer<T extends Item & GeoAnimatable> extends GeoItemRenderer
         else {
             RenderType renderType = getRenderType(renderState, getTextureLocation(renderState));
             //VertexConsumer buffer = renderType == null ? null : ItemRenderer.getFoilBuffer(bufferSource, renderType, false, renderState.getGeckolibData(DataTickets.HAS_GLINT));
-            VertexConsumer buffer = renderType == null ? null : ItemRenderer.getFoilBuffer(bufferSource, RenderType.endGateway(), false, renderState.getGeckolibData(DataTickets.HAS_GLINT));
+            ResourceLocation txt = ResourceLocation.fromNamespaceAndPath(MOD_ID, "textures/item/gun.png");
+            VertexConsumer buffer = renderType == null ? null : ItemRenderer.getFoilBuffer(bufferSource, renderType, false, renderState.getGeckolibData(DataTickets.HAS_GLINT));
             poseStack.pushPose();
             //poseStack.scale(9,9,9);
 

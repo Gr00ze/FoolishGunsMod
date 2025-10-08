@@ -12,6 +12,6 @@ public class FoolishGunsClient implements ClientModInitializer {
 		// This entrypoint is suitable for setting up client-specific logic, such as rendering.
         ItemRenderer.init();
         EntityRenderList.initialize();
-        RenderTest.test();
+        //RenderTest.test();
 	}
 }
