@@ -1,25 +1,29 @@
 {
   "credit": "Made with Blockbench",
-  "parent": "builtin/entity",
   "texture_size": [
     32,
     32
   ],
   "display": {
-    "thirdperson_righthand": {
+    "gui": {
       "rotation": [
-        0,
-        90,
-        0
+        -144,
+        62,
+        168
       ],
       "translation": [
-        0,
-        -4.5,
-        1
+        -1,
+        -5.25,
+        -3.25
+      ],
+      "scale": [
+        0.99,
+        0.99,
+        0.99
       ]
     }
   },
   "textures": {
-    "particle": "foolish_guns:item/prototype_gun_item"
+    "particle": "item/gun"
   }
 }
