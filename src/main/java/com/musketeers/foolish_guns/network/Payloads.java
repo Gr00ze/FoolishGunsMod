@@ -14,15 +14,7 @@ public class Payloads {
         registerReceivers();
     }
     public static void registerPackets(){
-        PayloadTypeRegistry.playC2S().register(
-                KillEntityC2SPayload.TYPE,
-                StreamCodec.of(
-                        (RegistryFriendlyByteBuf buffer, KillEntityC2SPayload payload)-> buffer.writeInt(payload.entityId()),
-                        (RegistryFriendlyByteBuf buffer)-> new KillEntityC2SPayload(buffer.readInt())
-
-                )
-
-        );
+        PayloadTypeRegistry.playC2S().register(KillEntityC2SPayload.TYPE, KillEntityC2SPayload.CODEC);
     }
     public static void registerReceivers() {
         ServerPlayNetworking.registerGlobalReceiver(
