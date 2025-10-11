@@ -1,7 +1,7 @@
 package com.musketeers.foolish_guns;
 
 import com.musketeers.foolish_guns.entities.EntityList;
-import com.musketeers.foolish_guns.network.Payloads;
+import com.musketeers.foolish_guns.network.Network;
 import net.fabricmc.api.ModInitializer;
 
 import org.slf4j.Logger;
@@ -25,6 +25,6 @@ public class FoolishGuns implements ModInitializer {
 		LOGGER.info("Hello Fabric world!");
         ItemList.initialize();
         EntityList.initialize();
-        Payloads.initialize();
+        Network.initialize();
 	}
 }
