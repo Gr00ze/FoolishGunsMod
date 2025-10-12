@@ -5,17 +5,11 @@ import com.musketeers.foolish_guns.network.KillEntityC2SPayload;
 import io.netty.buffer.Unpooled;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.fabricmc.fabric.impl.networking.payload.PayloadHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.projectile.Projectile;
-import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.level.ClipContext;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.*;
 
 import java.util.Optional;
@@ -23,7 +17,7 @@ import java.util.Optional;
 public class CustomInputsTest {
 
     public static void registerEvents(){
-        ClientTickEvents.END_CLIENT_TICK.register(CustomInputsTest::registerHitscanEvent);
+        //ClientTickEvents.END_CLIENT_TICK.register(CustomInputsTest::registerHitscanEvent);
         //ClientTickEvents.END_CLIENT_TICK.register(CustomInputsTest::something);
         //ClientTickEvents.END_CLIENT_TICK.register(CustomInputsTest::shoot);
 
@@ -96,10 +90,13 @@ public class CustomInputsTest {
         Vec3 look = player.getViewVector(1.0F);
         double range = 50.0;
         Vec3 end = eyePos.add(look.scale(range));
-
+        //client.options.keyAttack.consumeClick();
         EntityHitResult entityHit = null;
         double closestDistance = range;
-
+        /*for (int i = 0; i < 100; i++) {
+            Vec3 scaled = eyePos.add(look.scale(i));
+            client.level.addParticle(ParticleTypes.SCULK_CHARGE_POP,scaled.x,scaled.y,scaled.z, 0,0,0);
+        }*/
         for (Entity entity : client.level.getEntities(player, player.getBoundingBox().expandTowards(look.scale(range)).inflate(1.0))) {
             if (!entity.isPickable() || entity == player) continue;
 
@@ -110,6 +107,7 @@ public class CustomInputsTest {
                 if (dist < closestDistance) {
                     closestDistance = dist;
                     entityHit = new EntityHitResult(entity, hit.get());
+
                 }
             }
         }
