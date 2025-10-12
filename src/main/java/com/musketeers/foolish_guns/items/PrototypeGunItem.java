@@ -1,12 +1,12 @@
 package com.musketeers.foolish_guns.items;
 
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
@@ -31,7 +31,13 @@ public class PrototypeGunItem extends Item implements GeoItem {
 
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllerRegistrar) {
-        controllerRegistrar.add(new AnimationController<>("Activation", 0, animTest -> PlayState.STOP).triggerableAnim("activate", ACTIVATE_ANIM));
+        controllerRegistrar.add(new AnimationController<>("Activation", 0, animTest -> PlayState.STOP).triggerableAnim("activate", ACTIVATE_ANIM)
+                .setCustomInstructionKeyframeHandler(event->{
+                    if(event.keyframeData().getInstructions().equals("fire")){
+                        this.shoot();
+                    }
+                }));
+
     }
 
     @Override
@@ -55,13 +61,29 @@ public class PrototypeGunItem extends Item implements GeoItem {
 
     @Override
     public @NotNull InteractionResult use(Level level, Player player, InteractionHand hand) {
-        if (level instanceof ServerLevel serverLevel)
+        if (level instanceof ServerLevel serverLevel){
             triggerAnim(player, GeoItem.getOrAssignId(player.getItemInHand(hand), serverLevel), "Activation", "activate");
+
+            for (int i = 0; i < 100; i++) {
+                Vec3 scaled = player.getEyePosition().add(player.getLookAngle().scale(i));
+                serverLevel.sendParticles(ParticleTypes.SONIC_BOOM,scaled.x,scaled.y,scaled.z, 1,0,0,0,0);
+
+            }
+
+        }
+        player.playSound(SoundEvents.WARDEN_SONIC_BOOM, 3.0F, 1.0F);
+
+
+
         return super.use(level, player, hand);
     }
 
 
-    public void shoot(Level level, Player player, ItemStack mainHandItem) {
-        player.move(MoverType.PLAYER, new Vec3(0,10,0));
+
+
+
+
+    public void shoot() {
+
     }
 }
