@@ -54,7 +54,7 @@ public class Bullet extends ShulkerBullet {
     @Override
     protected double getDefaultGravity() {
         return 0.04;
-    }\
+    }
     private void selectNextMoveDirection(@Nullable Direction.Axis axis, @Nullable Entity entity) {
         double d = 0.5;
         BlockPos blockPos;
