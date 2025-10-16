@@ -19,11 +19,23 @@ import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import net.minecraft.world.level.Level;
+import software.bernie.geckolib.animatable.GeoItem;
+import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.animatable.manager.AnimatableManager;
+import software.bernie.geckolib.animatable.processing.AnimationController;
+import software.bernie.geckolib.animation.PlayState;
+import software.bernie.geckolib.animation.RawAnimation;
+import software.bernie.geckolib.util.GeckoLibUtil;
+
 import java.util.Optional;
 
-public class BulletItem extends ArrowItem {
+public class BulletItem extends ArrowItem implements GeoItem {
+    private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
+    private static final RawAnimation ACTIVATE_ANIM = RawAnimation.begin().thenPlay("animation.gun_model.tesla");
+
     public BulletItem(Properties properties) {
         super(properties);
+        GeoItem.registerSyncedAnimatable(this);
     }
     @Override
     public @NotNull InteractionResult use(Level level, Player player, InteractionHand hand){
@@ -72,4 +84,19 @@ public class BulletItem extends ArrowItem {
         return InteractionResult.SUCCESS;
     }
 
+    @Override
+    public void registerControllers(AnimatableManager.ControllerRegistrar controllerRegistrar) {
+        controllerRegistrar.add(new AnimationController<>("Activation", 0, animTest -> PlayState.STOP).triggerableAnim("activate", ACTIVATE_ANIM)
+                .setCustomInstructionKeyframeHandler(event->{
+                    if(event.keyframeData().getInstructions().equals("fire")){
+                        //this.shoot();
+                    }
+                }));
+
+    }
+
+    @Override
+    public AnimatableInstanceCache getAnimatableInstanceCache() {
+        return null;
+    }
 }
