@@ -1,7 +1,11 @@
 {
 	"format_version": "1.8.0",
 	"animations": {
-		"animation.gun_model.tesla": {
+		"animation.gun_model.new": {
+			"animation_length": 1
+		},
+		"animation.gun_model.tesla.charge": {
+			"loop": "hold_on_last_frame",
 			"animation_length": 1.5,
 			"bones": {
 				"ring": {
@@ -31,6 +35,42 @@
 						},
 						"1.5": {
 							"vector": [1.2, 1.2, 1.2]
+						}
+					}
+				}
+			}
+		},
+		"animation.gun_model.tesla.discharge": {
+			"loop": "hold_on_last_frame",
+			"animation_length": 0.25,
+			"bones": {
+				"ring": {
+					"scale": {
+						"0.0": {
+							"vector": [1.2, 1.2, 1.2]
+						},
+						"0.25": {
+							"vector": [1, 1, 1]
+						}
+					}
+				},
+				"ring2": {
+					"scale": {
+						"0.0": {
+							"vector": [1.2, 1.2, 1.2]
+						},
+						"0.25": {
+							"vector": [1, 1, 1]
+						}
+					}
+				},
+				"ring3": {
+					"scale": {
+						"0.0": {
+							"vector": [1.2, 1.2, 1.2]
+						},
+						"0.25": {
+							"vector": [1, 1, 1]
 						}
 					}
 				}
