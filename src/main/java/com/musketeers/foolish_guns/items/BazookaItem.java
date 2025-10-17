@@ -3,15 +3,11 @@ package com.musketeers.foolish_guns.items;
 import com.musketeers.foolish_guns.entities.Bullet;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.sounds.SoundEvents;
-import net.minecraft.sounds.SoundSource;
-import net.minecraft.stats.Stats;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.Projectile;
-import net.minecraft.world.entity.projectile.windcharge.WindCharge;
 import net.minecraft.world.item.ArrowItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.AABB;
@@ -28,14 +24,23 @@ import software.bernie.geckolib.animation.RawAnimation;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.Optional;
+import java.util.function.Consumer;
 
-public class BulletItem extends ArrowItem implements GeoItem {
+public class BazookaItem extends ArrowItem implements GeoItem {
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     private static final RawAnimation ACTIVATE_ANIM = RawAnimation.begin().thenPlay("animation.gun_model.tesla");
 
-    public BulletItem(Properties properties) {
+    public BazookaItem(Properties properties) {
         super(properties);
         GeoItem.registerSyncedAnimatable(this);
+    }
+    @Override
+    @SuppressWarnings("unchecked")
+    public void createGeoRenderer(Consumer consumer) {
+        System.out.println("Provider is "+ provider);
+        if (provider == null)return;
+        consumer.accept(provider);
+
     }
     @Override
     public @NotNull InteractionResult use(Level level, Player player, InteractionHand hand){
@@ -81,7 +86,7 @@ public class BulletItem extends ArrowItem implements GeoItem {
         );*/
         //player.awardStat(Stats.ITEM_USED.get(this));
         itemStack.consume(1, player);
-        return InteractionResult.SUCCESS;
+        return InteractionResult.CONSUME;
     }
 
     @Override
@@ -94,9 +99,12 @@ public class BulletItem extends ArrowItem implements GeoItem {
                 }));
 
     }
-
+    Object provider = null;
+    public void injectRenderProvider(Object provider){
+        this.provider = provider;
+    }
     @Override
     public AnimatableInstanceCache getAnimatableInstanceCache() {
-        return null;
+        return cache;
     }
 }

@@ -1,6 +1,8 @@
 package com.musketeers.foolish_guns.render;
 
 import com.musketeers.foolish_guns.items.ItemList;
+import com.musketeers.foolish_guns.render.entity.BulletRenderer;
+import com.musketeers.foolish_guns.render.item.BazookaRenderer;
 import com.musketeers.foolish_guns.render.item.GunRenderer;
 import software.bernie.geckolib.animatable.client.GeoRenderProvider;
 import software.bernie.geckolib.renderer.GeoItemRenderer;
@@ -21,6 +23,7 @@ public class ItemRenderer {
      }
      public static void init() {
          ItemList.PROTOTYPE_GUN_ITEM.injectRenderProvider(getItemRenderProvider(GunRenderer::new));
+         ItemList.BAZOOKA_ITEM.injectRenderProvider(getItemRenderProvider(BazookaRenderer::new));
 
      }
 
