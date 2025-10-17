@@ -136,8 +136,10 @@ public class PrototypeGunItem extends Item implements GeoItem {
         onAnimationEnd();
         this.holdTime = holdTime;
 
-
-        triggerAnim(currentPlayer, GeoItem.getOrAssignId(currentPlayer.getItemInHand(currentHand), currentLevel), controllerName, "discharge");
+        if(currentLevel !=null && currentPlayer !=null && currentHand!=null){
+            triggerAnim(currentPlayer, GeoItem.getOrAssignId(currentPlayer.getItemInHand(currentHand), currentLevel), controllerName, "discharge");
+        }
+        /*
         if (level instanceof ServerLevel serverLevel){
             long id = GeoItem.getOrAssignId(itemStack, serverLevel);
             AnimationController<?> controller = this.getAnimatableInstanceCache()
@@ -151,7 +153,7 @@ public class PrototypeGunItem extends Item implements GeoItem {
             }
 
         }
-
+        */
         //player.getCooldowns().addCooldown(this, 40);
         return super.releaseUsing(itemStack, level, livingEntity, holdTime);
     }
