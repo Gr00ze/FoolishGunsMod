@@ -1,7 +1,7 @@
 {
 	"format_version": "1.8.0",
 	"animations": {
-		"animation.model.new": {
+		"shoot": {
 			"animation_length": 1.5417,
 			"bones": {
 				"RPG": {
