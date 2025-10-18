@@ -2,6 +2,7 @@ package com.musketeers.foolish_guns.items;
 
 import net.minecraft.core.Holder;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -13,10 +14,9 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.EntityHitResult;
-import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.*;
 import org.jetbrains.annotations.NotNull;
 import software.bernie.geckolib.animatable.GeoItem;
 import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
@@ -81,18 +81,7 @@ public class PrototypeGunItem extends Item implements GeoItem {
         return PlayState.CONTINUE;
     }
 
-    public void onAnimationEnd(){
-        if (!isLoading) return;
-        isLoading = false;
-        this.spawnParticles(currentLevel,currentPlayer);
-        this.hitEnemy(currentLevel,currentPlayer);
 
-        //volume 0 - 1 - >1 distance
-        //pitch 0.5 - 1 - > 1 faster sound
-        currentLevel.playSound(null,currentPlayer.getX(),currentPlayer.getY(),currentPlayer.getZ(),SoundEvents.FIREWORK_ROCKET_BLAST, SoundSource.PLAYERS, 1F, 0.5F);
-        //currentPlayer.playSound(SoundEvents.WARDEN_SONIC_BOOM, 0.5F, 100F);
-
-    }
 
     @Override
     public AnimatableInstanceCache getAnimatableInstanceCache() {
@@ -125,7 +114,8 @@ public class PrototypeGunItem extends Item implements GeoItem {
 
         //animation
         triggerAnim(player, GeoItem.getOrAssignId(player.getItemInHand(hand), serverLevel), controllerName, "charge");
-
+        //charge sound
+        currentLevel.playSound(null,currentPlayer.getX(),currentPlayer.getY(),currentPlayer.getZ(),SoundEvents.ENDERMAN_SCREAM, SoundSource.PLAYERS, 1F, 0.8F);
         player.startUsingItem(hand);
         return InteractionResult.CONSUME;
     }
@@ -133,11 +123,13 @@ public class PrototypeGunItem extends Item implements GeoItem {
     @Override
     public boolean releaseUsing(ItemStack itemStack, Level level, LivingEntity livingEntity, int holdTime) {
 
-        onAnimationEnd();
+
         this.holdTime = holdTime;
 
         if(currentLevel !=null && currentPlayer !=null && currentHand!=null){
             triggerAnim(currentPlayer, GeoItem.getOrAssignId(currentPlayer.getItemInHand(currentHand), currentLevel), controllerName, "discharge");
+            shoot();
+            itemStack.setDamageValue(itemStack.getDamageValue()+1);
         }
         /*
         if (level instanceof ServerLevel serverLevel){
@@ -157,34 +149,63 @@ public class PrototypeGunItem extends Item implements GeoItem {
         //player.getCooldowns().addCooldown(this, 40);
         return super.releaseUsing(itemStack, level, livingEntity, holdTime);
     }
+    public void shoot(){
+        if (!isLoading) return;
+        isLoading = false;
+        this.spawnParticles(currentLevel,currentPlayer);
+        this.hitEnemy(currentLevel,currentPlayer);
+
+        //volume 0 - 1 - >1 distance
+        //pitch 0.5 - 1 - > 1 faster sound
+        currentLevel.playSound(null,currentPlayer.getX(),currentPlayer.getY(),currentPlayer.getZ(),SoundEvents.SCULK_SHRIEKER_SHRIEK, SoundSource.PLAYERS, 1F, 2.0F);
+        //currentPlayer.playSound(SoundEvents.WARDEN_SONIC_BOOM, 0.5F, 100F);
+
+    }
 
     private void hitEnemy(ServerLevel level, Player player) {
         Vec3 eyePos = player.getEyePosition(1.0F);
         Vec3 look = player.getViewVector(1.0F);
-        double range = -holdTime;
+        double range = 5.0; // esempio di distanza massima
         Vec3 end = eyePos.add(look.scale(range));
-        EntityHitResult entityHit = null;
-        double closestDistance = range;
+
+        // 1️⃣ Raycast blocchi
+        BlockHitResult blockHit = level.clip(new ClipContext(
+                eyePos,
+                end,
+                ClipContext.Block.OUTLINE,
+                ClipContext.Fluid.NONE,
+                player
+        ));
+
+        double maxDistance = range;
+        if (blockHit.getType() != HitResult.Type.MISS) {
+            maxDistance = eyePos.distanceTo(blockHit.getLocation());
+        }
+
+        // 2️⃣ Raycast entità
+        EntityHitResult closestEntityHit = null;
+        double closestDistance = maxDistance;
+
         for (Entity entity : level.getEntities(player, player.getBoundingBox().expandTowards(look.scale(range)).inflate(1.0))) {
             if (!entity.isPickable() || entity == player) continue;
 
-            AABB box = entity.getBoundingBox().inflate(0.3D); // margine per entità piccole
+            AABB box = entity.getBoundingBox().inflate(0.3D);
             Optional<Vec3> hit = box.clip(eyePos, end);
             if (hit.isPresent()) {
                 double dist = eyePos.distanceTo(hit.get());
                 if (dist < closestDistance) {
                     closestDistance = dist;
-                    entityHit = new EntityHitResult(entity, hit.get());
-
+                    closestEntityHit = new EntityHitResult(entity, hit.get());
                 }
             }
         }
-        if (entityHit != null && entityHit.getEntity() != null) {
-            Entity target = entityHit.getEntity();
-            DamageSource ds = new DamageSource(Holder.direct(new DamageType("message id", 3)));
-            DamageSource ds2 = new DamageSource(Holder.direct(new DamageType("string", DamageScaling.ALWAYS, 1, DamageEffects.HURT, DeathMessageType.DEFAULT )));
-            //target.hurtServer(level, ds2, 2);
-            target.kill(level);
+
+        if (closestEntityHit != null && closestEntityHit.getEntity() != null) {
+            Entity target = closestEntityHit.getEntity();
+            Holder<DamageType> genericType = level.registryAccess().lookupOrThrow(Registries.DAMAGE_TYPE).getOrThrow(DamageTypes.GENERIC);
+            DamageSource ds = new DamageSource(genericType);
+            target.hurtServer(level, ds, -this.holdTime);
+            //target.kill(level);
         }
     }
 
