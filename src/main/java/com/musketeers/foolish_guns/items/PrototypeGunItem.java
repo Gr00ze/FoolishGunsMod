@@ -105,7 +105,7 @@ public class PrototypeGunItem extends Item implements GeoItem {
 
     @Override
     public @NotNull InteractionResult use(Level level, Player player, InteractionHand hand) {
-        if (!(level instanceof ServerLevel serverLevel) || isLoading) return InteractionResult.FAIL;
+        if (!(level instanceof ServerLevel serverLevel) || isLoading || player.getItemInHand(hand).getDamageValue() == 10) return InteractionResult.FAIL;
         isLoading = true;
 
         this.currentLevel = serverLevel;
