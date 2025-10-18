@@ -10,6 +10,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 
+import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -85,6 +86,10 @@ public class RegistrationUtils {
 
     public static Block registerBlock(String blockName){
         return registerBlock(blockName, null , null);
+    }
+
+    public static CreativeModeTab registerCreativeModeTab(ResourceKey<CreativeModeTab> resourceKey, CreativeModeTab creativeModeTab){
+        return Registry.register(BuiltInRegistries.CREATIVE_MODE_TAB, resourceKey, creativeModeTab);
     }
 
 }
