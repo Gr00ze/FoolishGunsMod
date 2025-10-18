@@ -90,6 +90,7 @@ public class FoolishGunsDataGenerator implements DataGeneratorEntrypoint {
             @Override
             public void generateTranslations(HolderLookup.Provider provider, TranslationBuilder translationBuilder) {
                 translationBuilder.add(ItemList.PROTOTYPE_GUN_ITEM.asItem(), "Ring Gun");
+                translationBuilder.add(ItemList.CUSTOM_ITEM_GROUP_KEY, "Guns");
             }
         }
     }
