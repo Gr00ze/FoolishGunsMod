@@ -1,9 +1,8 @@
 package com.musketeers.foolish_guns;
 
-import com.musketeers.foolish_guns.items.PrototypeGunItem;
+import com.musketeers.foolish_guns.items.TeslaGun;
 import com.musketeers.foolish_guns.network.KillEntityC2SPayload;
 import io.netty.buffer.Unpooled;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
@@ -27,7 +26,7 @@ public class CustomInputsTest {
             if (client.player == null) return;
             if (true) {
                 LocalPlayer player = client.player;
-                if (player.getMainHandItem().getItem() instanceof PrototypeGunItem) {
+                if (player.getMainHandItem().getItem() instanceof TeslaGun) {
 
                     Vec3 eyePos = player.getEyePosition(1.0F);
                     Vec3 look = player.getViewVector(1.0F);
@@ -73,7 +72,7 @@ public class CustomInputsTest {
             if (client.player == null) return;
 
             if (client.options.keyAttack.isDown()) {
-                if (client.player.getMainHandItem().getItem() instanceof PrototypeGunItem gun) {
+                if (client.player.getMainHandItem().getItem() instanceof TeslaGun gun) {
                     //gun.shoot(client.level, client.player, client.player.getMainHandItem());
                 }
             }
@@ -84,7 +83,7 @@ public class CustomInputsTest {
         if (client.player == null) return;
 
         LocalPlayer player = client.player;
-        if (!(player.getMainHandItem().getItem() instanceof PrototypeGunItem)) return;
+        if (!(player.getMainHandItem().getItem() instanceof TeslaGun)) return;
 
         Vec3 eyePos = player.getEyePosition(1.0F);
         Vec3 look = player.getViewVector(1.0F);
