@@ -30,55 +30,39 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 import java.util.Optional;
 import java.util.function.Consumer;
 
-public class PrototypeGunItem extends Item implements GeoItem {
+public class TeslaGun extends ExtendedGeoItem {
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     private static final RawAnimation CHARGE_ANIMATION = RawAnimation.begin().thenPlay("animation.gun_model.tesla.charge");
     private static final RawAnimation DISCHARGE_ANIMATION = RawAnimation.begin().thenPlay("animation.gun_model.tesla.discharge");
-    private static final String controllerName = "MyController";
-    private boolean canFire = false;
+    private static final String controllerName = "Gun_Controller";
+    private static final String chargeAnimationName = "charge";
+    private static final String dischargeAnimationName = "discharge";
     private boolean isLoading = false;
     private ServerLevel currentLevel;
     private Player currentPlayer;
     private InteractionHand currentHand;
     private int holdTime = 0;
+    private static int maxDamage = 10;
 
-    public PrototypeGunItem(Properties properties) {
-
+    public TeslaGun(Properties properties) {
         super(properties);
-
         GeoItem.registerSyncedAnimatable(this);
+    }
+
+    public static Item.Properties getItemProperties(){
+        return new Item.Properties().stacksTo(1).useCooldown(0.5F).durability(maxDamage);
     }
 
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-
-        /*
-        controllers.add(new AnimationController<>("Activation",0, animTest -> PlayState.STOP)
-                .triggerableAnim("activate", ACTIVATE_ANIM));
-                */
-        controllers.add(new AnimationController<>(controllerName, 0, this::predicate)
-                .triggerableAnim("charge", CHARGE_ANIMATION)
-                .triggerableAnim("discharge", DISCHARGE_ANIMATION)
+        controllers.add(new AnimationController<>(controllerName, 0, this::animationHandler)
+                .triggerableAnim(chargeAnimationName, CHARGE_ANIMATION)
+                .triggerableAnim(dischargeAnimationName, DISCHARGE_ANIMATION)
         );
-
     }
 
-    private PlayState predicate(AnimationTest<PrototypeGunItem> animationTest){
-        AnimationController<PrototypeGunItem> controller = animationTest.controller();
-        var currAnim = controller.getCurrentRawAnimation();
-        if (currAnim == null) return PlayState.CONTINUE;
-
-
-        if (currAnim.getAnimationStages().get(0).animationName().equals("animation.gun_model.tesla")) {
-            // Se l'animazione è finita, chiama il metodo della classe
-            //System.out.println(controller.getAnimationState());
-            if (controller.getAnimationState() == AnimationController.State.STOPPED) {
-                //System.out.println(controller.getAnimationState());
-
-                //this.onAnimationEnd();
-            }
-        }
-        return PlayState.CONTINUE;
+    private PlayState animationHandler(AnimationTest<TeslaGun> animationTest) {
+        return PlayState.STOP;
     }
 
 
@@ -88,24 +72,11 @@ public class PrototypeGunItem extends Item implements GeoItem {
         return cache;
     }
 
-    Object provider = null;
-    public void injectRenderProvider(Object provider){
-        this.provider = provider;
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public void createGeoRenderer(Consumer consumer) {
-        if (provider == null)return;
-        consumer.accept(provider);
-
-    }
-
 
 
     @Override
     public @NotNull InteractionResult use(Level level, Player player, InteractionHand hand) {
-        if (!(level instanceof ServerLevel serverLevel) || isLoading || player.getItemInHand(hand).getDamageValue() == 10) return InteractionResult.FAIL;
+        if (!(level instanceof ServerLevel serverLevel) || isLoading || player.getItemInHand(hand).getDamageValue() == maxDamage) return InteractionResult.FAIL;
         isLoading = true;
 
         this.currentLevel = serverLevel;
@@ -113,7 +84,7 @@ public class PrototypeGunItem extends Item implements GeoItem {
         this.currentHand = hand;
 
         //animation
-        triggerAnim(player, GeoItem.getOrAssignId(player.getItemInHand(hand), serverLevel), controllerName, "charge");
+        triggerAnim(player, GeoItem.getOrAssignId(player.getItemInHand(hand), serverLevel), controllerName, chargeAnimationName);
         //charge sound
         currentLevel.playSound(null,currentPlayer.getX(),currentPlayer.getY(),currentPlayer.getZ(),SoundEvents.ENDERMAN_SCREAM, SoundSource.PLAYERS, 1F, 0.8F);
         player.startUsingItem(hand);
@@ -122,31 +93,12 @@ public class PrototypeGunItem extends Item implements GeoItem {
 
     @Override
     public boolean releaseUsing(ItemStack itemStack, Level level, LivingEntity livingEntity, int holdTime) {
-
-
         this.holdTime = holdTime;
-
         if(currentLevel !=null && currentPlayer !=null && currentHand!=null){
-            triggerAnim(currentPlayer, GeoItem.getOrAssignId(currentPlayer.getItemInHand(currentHand), currentLevel), controllerName, "discharge");
+            triggerAnim(currentPlayer, GeoItem.getOrAssignId(currentPlayer.getItemInHand(currentHand), currentLevel), controllerName, dischargeAnimationName);
             shoot();
             itemStack.setDamageValue(itemStack.getDamageValue()+1);
         }
-        /*
-        if (level instanceof ServerLevel serverLevel){
-            long id = GeoItem.getOrAssignId(itemStack, serverLevel);
-            AnimationController<?> controller = this.getAnimatableInstanceCache()
-                    .getManagerForId(id)
-                    .getAnimationControllers()
-                    .get(controllerName);
-
-            if (controller != null) {
-                //controller.forceAnimationReset();
-                //controller.setAnimationState(AnimationController.State.STOPPED);
-            }
-
-        }
-        */
-        //player.getCooldowns().addCooldown(this, 40);
         return super.releaseUsing(itemStack, level, livingEntity, holdTime);
     }
     public void shoot(){
@@ -154,21 +106,26 @@ public class PrototypeGunItem extends Item implements GeoItem {
         isLoading = false;
         this.spawnParticles(currentLevel,currentPlayer);
         this.hitEnemy(currentLevel,currentPlayer);
-
         //volume 0 - 1 - >1 distance
         //pitch 0.5 - 1 - > 1 faster sound
         currentLevel.playSound(null,currentPlayer.getX(),currentPlayer.getY(),currentPlayer.getZ(),SoundEvents.SCULK_SHRIEKER_SHRIEK, SoundSource.PLAYERS, 1F, 2.0F);
-        //currentPlayer.playSound(SoundEvents.WARDEN_SONIC_BOOM, 0.5F, 100F);
+    }
 
+    private void spawnParticles(ServerLevel level, Player player) {
+        //particles
+        for (int i = 0; i < -holdTime; i++) {
+            Vec3 scaled = player.getEyePosition().add(player.getLookAngle().scale(i));
+            level.sendParticles(ParticleTypes.SONIC_BOOM,scaled.x,scaled.y,scaled.z, 1,0,0,0,0);
+        }
     }
 
     private void hitEnemy(ServerLevel level, Player player) {
         Vec3 eyePos = player.getEyePosition(1.0F);
         Vec3 look = player.getViewVector(1.0F);
-        double range = 5.0; // esempio di distanza massima
+        double range = -holdTime; // range scale on hold time
         Vec3 end = eyePos.add(look.scale(range));
 
-        // 1️⃣ Raycast blocchi
+        //Ray cast blocks
         BlockHitResult blockHit = level.clip(new ClipContext(
                 eyePos,
                 end,
@@ -176,16 +133,16 @@ public class PrototypeGunItem extends Item implements GeoItem {
                 ClipContext.Fluid.NONE,
                 player
         ));
-
+        //max Distance is the range where an entity can be hit, more than that there is a block if hit which doesn't go through
         double maxDistance = range;
         if (blockHit.getType() != HitResult.Type.MISS) {
             maxDistance = eyePos.distanceTo(blockHit.getLocation());
         }
 
-        // 2️⃣ Raycast entità
+        //Ray cast entity
         EntityHitResult closestEntityHit = null;
         double closestDistance = maxDistance;
-
+        //Find the closest entity
         for (Entity entity : level.getEntities(player, player.getBoundingBox().expandTowards(look.scale(range)).inflate(1.0))) {
             if (!entity.isPickable() || entity == player) continue;
 
@@ -199,23 +156,18 @@ public class PrototypeGunItem extends Item implements GeoItem {
                 }
             }
         }
+        //damage the closest entity
+        if (closestEntityHit == null) return;
 
-        if (closestEntityHit != null && closestEntityHit.getEntity() != null) {
-            Entity target = closestEntityHit.getEntity();
-            Holder<DamageType> genericType = level.registryAccess().lookupOrThrow(Registries.DAMAGE_TYPE).getOrThrow(DamageTypes.GENERIC);
-            DamageSource ds = new DamageSource(genericType);
-            target.hurtServer(level, ds, -this.holdTime);
-            //target.kill(level);
-        }
+        Entity target = closestEntityHit.getEntity();
+        Holder<DamageType> genericType = level.registryAccess().lookupOrThrow(Registries.DAMAGE_TYPE).getOrThrow(DamageTypes.GENERIC);
+        DamageSource ds = new DamageSource(genericType);
+        target.hurtServer(level, ds, -this.holdTime);
+        //target.kill(level);
+
     }
 
-    private void spawnParticles(ServerLevel level, Player player) {
-        //particles
-        for (int i = 0; i < -holdTime; i++) {
-            Vec3 scaled = player.getEyePosition().add(player.getLookAngle().scale(i));
-            level.sendParticles(ParticleTypes.SONIC_BOOM,scaled.x,scaled.y,scaled.z, 1,0,0,0,0);
-        }
-    }
+
 
 
 
