@@ -2,9 +2,7 @@ package com.musketeers.foolish_guns.render.item;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.musketeers.foolish_guns.items.PrototypeGunItem;
-import com.musketeers.foolish_guns.model.GunModel;
-import com.musketeers.foolish_guns.render.RenderTest;
+import com.musketeers.foolish_guns.items.TeslaGun;
 import it.unimi.dsi.fastutil.Pair;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
@@ -28,20 +26,10 @@ import software.bernie.geckolib.util.RenderUtil;
 
 import static com.musketeers.foolish_guns.FoolishGuns.MOD_ID;
 
-public class GunRenderer<T extends Item & GeoAnimatable> extends GeoItemRenderer<PrototypeGunItem> {
-    public GunRenderer() {
-        super(new GunModel());
+public class TestRenderer <T extends Item & GeoAnimatable> extends GeoItemRenderer<T> {
+    public TestRenderer(GeoModel<T> model) {
+        super(model);
     }
-    @Override
-    public void render(GeoRenderState renderState, PoseStack poseStack, MultiBufferSource bufferSource) {
-        super.render(renderState,poseStack, bufferSource);
-        //extendedRenderGecko(renderState,poseStack,bufferSource);
-
-        //RenderTest.test0(renderState,poseStack,bufferSource);
-        //RenderTest.exampleTessellatorRGBTriangle(new Vector3f(0,0,0),poseStack);
-
-    }
-
     public void extendedRenderGecko(GeoRenderState renderState, PoseStack poseStack, MultiBufferSource bufferSource){
         //super.render()
         if (renderState.getGeckolibData(DataTickets.ITEM_RENDER_PERSPECTIVE) == ItemDisplayContext.GUI) {
@@ -50,7 +38,7 @@ public class GunRenderer<T extends Item & GeoAnimatable> extends GeoItemRenderer
         else {
             RenderType renderType = getRenderType(renderState, getTextureLocation(renderState));
             //VertexConsumer buffer = renderType == null ? null : ItemRenderer.getFoilBuffer(bufferSource, renderType, false, renderState.getGeckolibData(DataTickets.HAS_GLINT));
-            ResourceLocation txt = ResourceLocation.fromNamespaceAndPath(MOD_ID, "textures/item/gun.png");
+            ResourceLocation txt = ResourceLocation.fromNamespaceAndPath(MOD_ID, "textures/item/tesla_gun.png");
             VertexConsumer buffer = renderType == null ? null : ItemRenderer.getFoilBuffer(bufferSource, renderType, false, renderState.getGeckolibData(DataTickets.HAS_GLINT));
             poseStack.pushPose();
             //poseStack.scale(9,9,9);
