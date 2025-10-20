@@ -1,16 +1,16 @@
 package com.musketeers.foolish_guns.model;
 
-import com.musketeers.foolish_guns.items.PrototypeGunItem;
+import com.musketeers.foolish_guns.items.TeslaGun;
 import net.minecraft.resources.ResourceLocation;
 import software.bernie.geckolib.model.GeoModel;
 import software.bernie.geckolib.renderer.base.GeoRenderState;
 
 import static com.musketeers.foolish_guns.FoolishGuns.MOD_ID;
 
-public class GunModel extends GeoModel<PrototypeGunItem> {
-    private final ResourceLocation model = ResourceLocation.fromNamespaceAndPath(MOD_ID, "geckolib/models/gun_model.geo.json");
-    private final ResourceLocation texture = ResourceLocation.fromNamespaceAndPath(MOD_ID, "textures/item/gun.png");
-    private final ResourceLocation animation = ResourceLocation.fromNamespaceAndPath(MOD_ID, "geckolib/animations/gun_model.animation.json");
+public class GunModel extends GeoModel<TeslaGun> {
+    private final ResourceLocation model = ResourceLocation.fromNamespaceAndPath(MOD_ID, "geckolib/models/tesla_gun_model.geo.json");
+    private final ResourceLocation texture = ResourceLocation.fromNamespaceAndPath(MOD_ID, "textures/item/tesla_gun.png");
+    private final ResourceLocation animation = ResourceLocation.fromNamespaceAndPath(MOD_ID, "geckolib/animations/tesla_gun_model.animation.json");
     @Override
     public ResourceLocation getModelResource(GeoRenderState renderState) {return this.model;}
 
@@ -20,7 +20,7 @@ public class GunModel extends GeoModel<PrototypeGunItem> {
     }
 
     @Override
-    public ResourceLocation getAnimationResource(PrototypeGunItem animatable) {
+    public ResourceLocation getAnimationResource(TeslaGun animatable) {
         return this.animation;
     }
 }

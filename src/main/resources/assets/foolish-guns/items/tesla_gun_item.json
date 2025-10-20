@@ -1,7 +1,7 @@
 {
   "model": {
     "type": "minecraft:special",
-    "base": "foolish-guns:item/prototype_gun_item",
+    "base": "foolish-guns:item/tesla_gun_item",
     "model": {
       "type": "geckolib:geckolib"
     }
