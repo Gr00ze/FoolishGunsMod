@@ -63,6 +63,7 @@ public class FoolishGunsDataGenerator implements DataGeneratorEntrypoint {
             public void generateTranslations(HolderLookup.Provider provider, TranslationBuilder translationBuilder) {
                 translationBuilder.add(ItemList.TESLA_GUN_ITEM.asItem(), "Ring Gun");
                 translationBuilder.add(ItemGroups.CUSTOM_ITEM_GROUP_KEY, "Guns");
+                translationBuilder.add(ItemList.BAZOOKA_ITEM.asItem(), "Ionized Rocket Propeller (WIP)");
             }
         });
 	}
