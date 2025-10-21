@@ -1,6 +1,7 @@
 package com.musketeers.foolish_guns.entities;
 
 import com.google.common.collect.Lists;
+import com.musketeers.foolish_guns.items.TeslaGun;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
@@ -17,10 +18,20 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
+import software.bernie.geckolib.animatable.GeoAnimatable;
+import software.bernie.geckolib.animatable.GeoEntity;
+import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.animatable.manager.AnimatableManager;
+import software.bernie.geckolib.animatable.processing.AnimationController;
+import software.bernie.geckolib.animatable.processing.AnimationTest;
+import software.bernie.geckolib.animation.Animation;
+import software.bernie.geckolib.animation.PlayState;
+import software.bernie.geckolib.animation.RawAnimation;
+import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.List;
 
-public class Bullet extends ShulkerBullet {
+public class IonBallEntity extends ShulkerBullet implements GeoEntity {
     private static final double SPEED = 5;
     protected final RandomSource random = RandomSource.create();
 
@@ -32,13 +43,16 @@ public class Bullet extends ShulkerBullet {
     private double targetDeltaX;
     private double targetDeltaY;
     private double targetDeltaZ;
+    private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
+    private static final RawAnimation BALL_ANIMATION = RawAnimation.begin().thenLoop("animation.ion_ball_model.rotation");
 
-    public Bullet(EntityType<? extends Bullet> entityType, Level level) {
+
+    public IonBallEntity(EntityType<? extends IonBallEntity> entityType, Level level) {
         super(entityType, level);
         this.noPhysics=true;
     }
     //@Override
-    public Bullet(Level level, LivingEntity shooter, Entity finalTarget, Direction.Axis axis) {
+    public IonBallEntity(Level level, LivingEntity shooter, Entity finalTarget, Direction.Axis axis) {
         this(EntityList.BULLET_ENTITY_TYPE, level);
         this.setOwner(shooter);
         Vec3 vec3 = shooter.getBoundingBox().getCenter();
@@ -47,6 +61,7 @@ public class Bullet extends ShulkerBullet {
         this.currentMoveDirection = Direction.getRandom(this.random);
         this.selectNextMoveDirection(axis, finalTarget);
         this.setNoGravity(true);
+        this.triggerAnim("rotationController","rotationAnim");
     }
     private void setMoveDirection(@Nullable Direction direction) {
         this.currentMoveDirection = direction;
@@ -190,4 +205,22 @@ public class Bullet extends ShulkerBullet {
         }
     }
 
+    @Override
+    public void registerControllers(AnimatableManager.ControllerRegistrar controllerRegistrar) {
+    controllerRegistrar.add(new AnimationController<>("rotationController", 0, this::animationHandler).triggerableAnim("rotation", BALL_ANIMATION));
+    }
+    private PlayState animationHandler(AnimationTest<IonBallEntity> animationTest) {
+        animationTest.setAndContinue(RawAnimation.begin().then("rotation", Animation.LoopType.LOOP));
+        return PlayState.CONTINUE;
+    }
+
+    @Override
+    public AnimatableInstanceCache getAnimatableInstanceCache() {
+        return this.cache;
+    }
+
+    @Override
+    public double getTick(@Nullable Object o) {
+        return 0;
+    }
 }

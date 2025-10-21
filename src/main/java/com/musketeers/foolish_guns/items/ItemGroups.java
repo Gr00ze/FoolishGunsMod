@@ -23,6 +23,7 @@ public class ItemGroups {
     public static void initialize(){
         ItemGroupEvents.modifyEntriesEvent(CUSTOM_ITEM_GROUP_KEY).register(itemGroup -> {
             itemGroup.accept(ItemList.TESLA_GUN_ITEM.asItem());
+            itemGroup.accept(ItemList.BAZOOKA_ITEM.asItem());
         });
     }
 }
