@@ -1,6 +1,6 @@
 package com.musketeers.foolish_guns.items;
 
-import com.musketeers.foolish_guns.entities.Bullet;
+import com.musketeers.foolish_guns.entities.IonBallEntity;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
@@ -64,7 +64,7 @@ public class BazookaItem extends ArrowItem implements GeoItem {
                         entityHit = new EntityHitResult(entity, hit.get());
                         EntityHitResult finalEntityHit = entityHit;
                         Projectile.spawnProjectile(
-                                new Bullet(level, player, finalEntityHit.getEntity(), Direction.UP.getAxis()),
+                                new IonBallEntity(level, player, finalEntityHit.getEntity(), Direction.UP.getAxis()),
                                 serverLevel,
                                 itemStack
                         );
