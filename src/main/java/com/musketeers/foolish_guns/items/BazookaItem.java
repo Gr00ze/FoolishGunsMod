@@ -1,17 +1,13 @@
 package com.musketeers.foolish_guns.items;
 
-import com.musketeers.foolish_guns.entities.Bullet;
+import com.musketeers.foolish_guns.entities.IonBallEntity;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.sounds.SoundEvents;
-import net.minecraft.sounds.SoundSource;
-import net.minecraft.stats.Stats;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.Projectile;
-import net.minecraft.world.entity.projectile.windcharge.WindCharge;
 import net.minecraft.world.item.ArrowItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.AABB;
@@ -19,11 +15,32 @@ import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import net.minecraft.world.level.Level;
-import java.util.Optional;
+import software.bernie.geckolib.animatable.GeoItem;
+import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.animatable.manager.AnimatableManager;
+import software.bernie.geckolib.animatable.processing.AnimationController;
+import software.bernie.geckolib.animation.PlayState;
+import software.bernie.geckolib.animation.RawAnimation;
+import software.bernie.geckolib.util.GeckoLibUtil;
 
-public class BulletItem extends ArrowItem {
-    public BulletItem(Properties properties) {
+import java.util.Optional;
+import java.util.function.Consumer;
+
+public class BazookaItem extends ArrowItem implements GeoItem {
+    private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
+    private static final RawAnimation ACTIVATE_ANIM = RawAnimation.begin().thenPlay("animation.gun_model.tesla");
+
+    public BazookaItem(Properties properties) {
         super(properties);
+        GeoItem.registerSyncedAnimatable(this);
+    }
+    @Override
+    @SuppressWarnings("unchecked")
+    public void createGeoRenderer(Consumer consumer) {
+        System.out.println("Provider is "+ provider);
+        if (provider == null)return;
+        consumer.accept(provider);
+
     }
     @Override
     public @NotNull InteractionResult use(Level level, Player player, InteractionHand hand){
@@ -47,7 +64,7 @@ public class BulletItem extends ArrowItem {
                         entityHit = new EntityHitResult(entity, hit.get());
                         EntityHitResult finalEntityHit = entityHit;
                         Projectile.spawnProjectile(
-                                new Bullet(level, player, finalEntityHit.getEntity(), Direction.UP.getAxis()),
+                                new IonBallEntity(level, player, finalEntityHit.getEntity(), Direction.UP.getAxis()),
                                 serverLevel,
                                 itemStack
                         );
@@ -69,7 +86,25 @@ public class BulletItem extends ArrowItem {
         );*/
         //player.awardStat(Stats.ITEM_USED.get(this));
         itemStack.consume(1, player);
-        return InteractionResult.SUCCESS;
+        return InteractionResult.CONSUME;
     }
 
+    @Override
+    public void registerControllers(AnimatableManager.ControllerRegistrar controllerRegistrar) {
+        controllerRegistrar.add(new AnimationController<>("Activation", 0, animTest -> PlayState.STOP).triggerableAnim("activate", ACTIVATE_ANIM)
+                .setCustomInstructionKeyframeHandler(event->{
+                    if(event.keyframeData().getInstructions().equals("fire")){
+                        //this.shoot();
+                    }
+                }));
+
+    }
+    Object provider = null;
+    public void injectRenderProvider(Object provider){
+        this.provider = provider;
+    }
+    @Override
+    public AnimatableInstanceCache getAnimatableInstanceCache() {
+        return cache;
+    }
 }
