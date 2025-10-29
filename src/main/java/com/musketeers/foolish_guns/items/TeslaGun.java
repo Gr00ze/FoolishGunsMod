@@ -10,6 +10,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.*;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -28,7 +29,6 @@ import software.bernie.geckolib.animation.RawAnimation;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.Optional;
-import java.util.function.Consumer;
 
 public class TeslaGun extends ExtendedGeoItem {
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
@@ -43,6 +43,7 @@ public class TeslaGun extends ExtendedGeoItem {
     private InteractionHand currentHand;
     private int holdTime = 0;
     private static int maxDamage = 10;
+    private boolean speed = true;
 
     public TeslaGun(Properties properties) {
         super(properties);
@@ -55,14 +56,15 @@ public class TeslaGun extends ExtendedGeoItem {
 
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<>(controllerName, 0, this::animationHandler)
+        controllers.add(new AnimationController<>(controllerName, 5, this::animationHandler)
                 .triggerableAnim(chargeAnimationName, CHARGE_ANIMATION)
                 .triggerableAnim(dischargeAnimationName, DISCHARGE_ANIMATION)
         );
     }
 
     private PlayState animationHandler(AnimationTest<TeslaGun> animationTest) {
-        return PlayState.STOP;
+        //animationTest.controller().
+        return PlayState.CONTINUE;
     }
 
 
@@ -96,8 +98,10 @@ public class TeslaGun extends ExtendedGeoItem {
         this.holdTime = holdTime;
         if(currentLevel !=null && currentPlayer !=null && currentHand!=null){
             triggerAnim(currentPlayer, GeoItem.getOrAssignId(currentPlayer.getItemInHand(currentHand), currentLevel), controllerName, dischargeAnimationName);
+            //speed = !speed;
             shoot();
-            itemStack.setDamageValue(itemStack.getDamageValue()+1);
+            if (!currentPlayer.isCreative())
+                itemStack.setDamageValue(itemStack.getDamageValue()+1);
         }
         return super.releaseUsing(itemStack, level, livingEntity, holdTime);
     }
@@ -113,9 +117,23 @@ public class TeslaGun extends ExtendedGeoItem {
 
     private void spawnParticles(ServerLevel level, Player player) {
         //particles
-        for (int i = 0; i < -holdTime; i++) {
-            Vec3 scaled = player.getEyePosition().add(player.getLookAngle().scale(i));
-            level.sendParticles(ParticleTypes.SONIC_BOOM,scaled.x,scaled.y,scaled.z, 1,0,0,0,0);
+        Vec3 eyePos = player.getEyePosition();
+        Vec3 look = player.getLookAngle();
+
+        // offset
+        boolean isMainHandAndRightArm = player.getUsedItemHand() == InteractionHand.MAIN_HAND && player.getMainArm() == HumanoidArm.RIGHT;
+        boolean isOffHandAndLeftArm = player.getUsedItemHand() == InteractionHand.OFF_HAND && player.getMainArm() == HumanoidArm.LEFT;
+        int handFactor = isMainHandAndRightArm || isOffHandAndLeftArm  ? 1:-1;
+
+        Vec3 horizontalAdjustment = look.cross(new Vec3(0, 1, 0)).normalize().scale(0.8 * handFactor);  // spostamento a destra
+        Vec3 verticalAdjustment = new Vec3(0, 1, 0).scale(-0.1);
+
+        for (int i = 2; i < -holdTime; i++) {
+            Vec3 pos = eyePos
+                    .add(look.scale(i))
+                    .add(horizontalAdjustment)
+                    .add(verticalAdjustment);
+            level.sendParticles(ParticleTypes.SONIC_BOOM,pos.x,pos.y,pos.z, 1,0,0,0,0);
         }
     }
 
