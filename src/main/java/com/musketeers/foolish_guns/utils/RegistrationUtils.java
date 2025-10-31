@@ -2,7 +2,11 @@ package com.musketeers.foolish_guns.utils;
 
 import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
 
+import net.fabricmc.fabric.api.particle.v1.FabricParticleTypes;
 import net.minecraft.core.Registry;
+import net.minecraft.core.particles.ParticleType;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
@@ -91,5 +95,9 @@ public class RegistrationUtils {
     public static CreativeModeTab registerCreativeModeTab(ResourceKey<CreativeModeTab> resourceKey, CreativeModeTab creativeModeTab){
         return Registry.register(BuiltInRegistries.CREATIVE_MODE_TAB, resourceKey, creativeModeTab);
     }
+
+    public static <P extends ParticleType<?>> P registerParticle(String particleName, P particleType){
+        return Registry.register(BuiltInRegistries.PARTICLE_TYPE, id(particleName), particleType);
+    };
 
 }
