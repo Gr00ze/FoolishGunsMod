@@ -1,5 +1,6 @@
 package com.musketeers.foolish_guns.items;
 
+import com.musketeers.foolish_guns.GunParticles;
 import net.minecraft.core.Holder;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.registries.Registries;
@@ -10,7 +11,9 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.*;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -27,8 +30,9 @@ import software.bernie.geckolib.animation.PlayState;
 import software.bernie.geckolib.animation.RawAnimation;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
+import java.time.LocalDate;
+import java.time.temporal.ChronoField;
 import java.util.Optional;
-import java.util.function.Consumer;
 
 public class TeslaGun extends ExtendedGeoItem {
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
@@ -43,6 +47,7 @@ public class TeslaGun extends ExtendedGeoItem {
     private InteractionHand currentHand;
     private int holdTime = 0;
     private static int maxDamage = 10;
+    private boolean speed = true;
 
     public TeslaGun(Properties properties) {
         super(properties);
@@ -55,14 +60,15 @@ public class TeslaGun extends ExtendedGeoItem {
 
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<>(controllerName, 0, this::animationHandler)
+        controllers.add(new AnimationController<>(controllerName, 5, this::animationHandler)
                 .triggerableAnim(chargeAnimationName, CHARGE_ANIMATION)
                 .triggerableAnim(dischargeAnimationName, DISCHARGE_ANIMATION)
         );
     }
 
     private PlayState animationHandler(AnimationTest<TeslaGun> animationTest) {
-        return PlayState.STOP;
+        //animationTest.controller().
+        return PlayState.CONTINUE;
     }
 
 
@@ -76,17 +82,19 @@ public class TeslaGun extends ExtendedGeoItem {
 
     @Override
     public @NotNull InteractionResult use(Level level, Player player, InteractionHand hand) {
+        //player.setPose(Pose.SHOOTING);
         if (!(level instanceof ServerLevel serverLevel) || isLoading || player.getItemInHand(hand).getDamageValue() == maxDamage) return InteractionResult.FAIL;
         isLoading = true;
 
         this.currentLevel = serverLevel;
         this.currentPlayer = player;
         this.currentHand = hand;
+        //player hand
 
         //animation
         triggerAnim(player, GeoItem.getOrAssignId(player.getItemInHand(hand), serverLevel), controllerName, chargeAnimationName);
         //charge sound
-        currentLevel.playSound(null,currentPlayer.getX(),currentPlayer.getY(),currentPlayer.getZ(),SoundEvents.ENDERMAN_SCREAM, SoundSource.PLAYERS, 1F, 0.8F);
+        currentLevel.playSound(null,currentPlayer.getX(),currentPlayer.getY(),currentPlayer.getZ(),SoundEvents.WITHER_AMBIENT, SoundSource.PLAYERS, 2F, 0.5F);
         player.startUsingItem(hand);
         return InteractionResult.CONSUME;
     }
@@ -96,28 +104,95 @@ public class TeslaGun extends ExtendedGeoItem {
         this.holdTime = holdTime;
         if(currentLevel !=null && currentPlayer !=null && currentHand!=null){
             triggerAnim(currentPlayer, GeoItem.getOrAssignId(currentPlayer.getItemInHand(currentHand), currentLevel), controllerName, dischargeAnimationName);
+            //speed = !speed;
             shoot();
-            itemStack.setDamageValue(itemStack.getDamageValue()+1);
+            if (!currentPlayer.isCreative())
+                itemStack.setDamageValue(itemStack.getDamageValue()+1);
         }
         return super.releaseUsing(itemStack, level, livingEntity, holdTime);
     }
     public void shoot(){
         if (!isLoading) return;
         isLoading = false;
+        LocalDate localDate = LocalDate.now();
+        if(localDate.get(ChronoField.DAY_OF_MONTH) == 31 && localDate.get(ChronoField.MONTH_OF_YEAR) == 10){
+            spawnSpookyParticles(currentLevel,currentPlayer);
+            currentLevel.playSound(null,currentPlayer.getX(),currentPlayer.getY(),currentPlayer.getZ(),SoundEvents.BAT_LOOP, SoundSource.PLAYERS, 1F, 2.0F);
+            return;
+        }
+
         this.spawnParticles(currentLevel,currentPlayer);
         this.hitEnemy(currentLevel,currentPlayer);
         //volume 0 - 1 - >1 distance
         //pitch 0.5 - 1 - > 1 faster sound
-        currentLevel.playSound(null,currentPlayer.getX(),currentPlayer.getY(),currentPlayer.getZ(),SoundEvents.SCULK_SHRIEKER_SHRIEK, SoundSource.PLAYERS, 1F, 2.0F);
+        //currentLevel.playSound(null,currentPlayer.getX(),currentPlayer.getY(),currentPlayer.getZ(),SoundEvents.SCULK_SHRIEKER_SHRIEK, SoundSource.PLAYERS, 1F, 2.0F);
+        currentLevel.playSound(null,currentPlayer.getX(),currentPlayer.getY(),currentPlayer.getZ(),SoundEvents.BAT_LOOP, SoundSource.PLAYERS, 1F, 2.0F);
     }
 
     private void spawnParticles(ServerLevel level, Player player) {
         //particles
-        for (int i = 0; i < -holdTime; i++) {
-            Vec3 scaled = player.getEyePosition().add(player.getLookAngle().scale(i));
-            level.sendParticles(ParticleTypes.SONIC_BOOM,scaled.x,scaled.y,scaled.z, 1,0,0,0,0);
+
+        Vec3 eyePos = player.getEyePosition();
+
+        Vec3 look = player.getLookAngle();
+
+        // offset
+        boolean isMainHandAndRightArm = player.getUsedItemHand() == InteractionHand.MAIN_HAND && player.getMainArm() == HumanoidArm.RIGHT;
+        boolean isOffHandAndLeftArm = player.getUsedItemHand() == InteractionHand.OFF_HAND && player.getMainArm() == HumanoidArm.LEFT;
+        int handFactor = isMainHandAndRightArm || isOffHandAndLeftArm  ? 1:-1;
+
+        Vec3 horizontalAdjustment = look.cross(new Vec3(0, 1, 0)).normalize().scale(0.8 * handFactor);  // spostamento a destra
+        Vec3 verticalAdjustment = new Vec3(0, 1, 0).scale(-0.1);
+
+        for (int i = 2; i < -holdTime; i++) {
+            Vec3 pos = eyePos
+                    .add(look.scale(i))
+                    .add(horizontalAdjustment)
+                    .add(verticalAdjustment);
+            level.sendParticles(ParticleTypes.SONIC_BOOM,pos.x,pos.y,pos.z, 1,0,0,0,0);
+
         }
+
+
     }
+    private void spawnSpookyParticles(ServerLevel level, Player player) {
+        Vec3 eyePos = player.getEyePosition();
+        Vec3 look = player.getLookAngle().normalize();
+
+        double radius = 0.3;          // quanto larga è la spirale
+        double turnsPerBlock = 1.5;   // rotazioni per unità di distanza
+        double spacing = 1;         // distanza tra particelle
+
+        // calcolo vettori ortogonali
+        Vec3 up = new Vec3(0, 1, 0);
+        if (Math.abs(look.dot(up)) > 0.99) up = new Vec3(1, 0, 0);
+        Vec3 right = look.cross(up).normalize();
+        Vec3 upOrtho = right.cross(look).normalize();
+
+
+        boolean rightHand = (player.getUsedItemHand() == InteractionHand.MAIN_HAND && player.getMainArm() == HumanoidArm.RIGHT)
+                || (player.getUsedItemHand() == InteractionHand.OFF_HAND && player.getMainArm() == HumanoidArm.LEFT);
+        Vec3 handOffset = right.scale(rightHand ? 0.4 : -0.4);
+
+        for (double d = 2; d < -holdTime * spacing; d += spacing) {
+            double angle = d * turnsPerBlock * 2 * Math.PI;
+
+            double offsetX = Math.cos(angle) * radius;
+            double offsetY = Math.sin(angle) * radius;
+
+            Vec3 pos = eyePos
+                    .add(look.scale(d))
+                    .add(right.scale(offsetX))
+                    .add(upOrtho.scale(offsetY))
+                    .add(handOffset)
+                    .add(0, -0.1, 0);
+
+            // velocità zero: la logica del movimento è nel particle client
+            level.sendParticles(GunParticles.CUSTOM_SPARK, pos.x, pos.y, pos.z, 1, 0, 0, 0, 0);
+        }
+
+    }
+
 
     private void hitEnemy(ServerLevel level, Player player) {
         Vec3 eyePos = player.getEyePosition(1.0F);
