@@ -14,5 +14,6 @@ public class FoolishGunsClient implements ClientModInitializer {
         EntityRenderList.initialize();
         //RenderTest.test();
         CustomInputsTest.registerEvents();
+        ParticleRendering.initialize();
 	}
 }
