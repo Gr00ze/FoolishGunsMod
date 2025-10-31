@@ -28,5 +28,6 @@ public class FoolishGuns implements ModInitializer {
         ItemGroups.initialize();
         EntityList.initialize();
         Network.initialize();
+        GunParticles.initialize();
 	}
 }
