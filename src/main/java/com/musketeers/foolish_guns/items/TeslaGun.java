@@ -112,22 +112,25 @@ public class TeslaGun extends ExtendedGeoItem {
         return super.releaseUsing(itemStack, level, livingEntity, holdTime);
     }
     public void shoot(){
+        //TODO double handed
         if (!isLoading) return;
         isLoading = false;
         LocalDate localDate = LocalDate.now();
-        if(true || localDate.getDayOfMonth() == 31 && localDate.getMonth() == Month.OCTOBER){
-            spawnSpookyParticles(currentLevel,currentPlayer);
-            currentLevel.playSound(null,currentPlayer.getX(),currentPlayer.getY(),currentPlayer.getZ(),SoundEvents.BAT_LOOP, SoundSource.PLAYERS, 1F, 2.0F);
-            return;
+        int dayOfMonth = localDate.getDayOfMonth();
+        if(dayOfMonth == 31 && localDate.getMonth() == Month.OCTOBER) {
+            this.spawnSpookyParticles(currentLevel, currentPlayer);
+            currentLevel.playSound(null, currentPlayer.getX(), currentPlayer.getY(), currentPlayer.getZ(), SoundEvents.BAT_LOOP, SoundSource.PLAYERS, 1F, 2.0F);
+        }else if(24 <= dayOfMonth && dayOfMonth <= 25 && localDate.getMonth() == Month.DECEMBER){
+            this.spawnParticles(currentLevel,currentPlayer);
+            currentLevel.playSound(null,currentPlayer.getX(),currentPlayer.getY(),currentPlayer.getZ(),SoundEvents.SNOW_HIT, SoundSource.PLAYERS, 1F, 0.5F);
+        }else{
+            this.spawnParticles(currentLevel,currentPlayer);
+            //volume 0 - 1 - >1 distance
+            //pitch 0.5 - 1 - > 1 faster sound
+            currentLevel.playSound(null,currentPlayer.getX(),currentPlayer.getY(),currentPlayer.getZ(),SoundEvents.LIGHTNING_BOLT_THUNDER, SoundSource.PLAYERS, 1F, 2.0F);
         }
-
-        this.spawnParticles(currentLevel,currentPlayer);
         this.hitEnemy(currentLevel,currentPlayer);
-        //volume 0 - 1 - >1 distance
-        //pitch 0.5 - 1 - > 1 faster sound
-        //currentLevel.playSound(null,currentPlayer.getX(),currentPlayer.getY(),currentPlayer.getZ(),SoundEvents.SCULK_SHRIEKER_SHRIEK, SoundSource.PLAYERS, 1F, 2.0F);
-        currentLevel.playSound(null,currentPlayer.getX(),currentPlayer.getY(),currentPlayer.getZ(),SoundEvents.LIGHTNING_BOLT_THUNDER, SoundSource.PLAYERS, 1F, 2.0F);
-    }
+        }
 
     private void spawnParticles(ServerLevel level, Player player) {
         //particles
