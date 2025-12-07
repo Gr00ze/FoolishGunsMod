@@ -4,6 +4,7 @@ import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityT
 
 import net.fabricmc.fabric.api.particle.v1.FabricParticleTypes;
 import net.minecraft.core.Registry;
+import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.particles.ParticleType;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.particles.SimpleParticleType;
@@ -99,5 +100,9 @@ public class RegistrationUtils {
     public static <P extends ParticleType<?>> P registerParticle(String particleName, P particleType){
         return Registry.register(BuiltInRegistries.PARTICLE_TYPE, id(particleName), particleType);
     };
+
+    public static <T> DataComponentType<T> registerComponent(String componentName, DataComponentType.Builder<T> builder){
+        return Registry.register(BuiltInRegistries.DATA_COMPONENT_TYPE, id(componentName), builder.build());
+    }
 
 }

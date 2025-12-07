@@ -1,9 +1,12 @@
 package com.musketeers.foolish_guns;
 
+import com.musketeers.foolish_guns.components.DataComponentList;
 import com.musketeers.foolish_guns.entities.EntityList;
 import com.musketeers.foolish_guns.items.ItemGroups;
 import com.musketeers.foolish_guns.network.Network;
+import com.musketeers.foolish_guns.particles.GunParticles;
 import net.fabricmc.api.ModInitializer;
+
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,5 +32,6 @@ public class FoolishGuns implements ModInitializer {
         EntityList.initialize();
         Network.initialize();
         GunParticles.initialize();
+        DataComponentList.initialize();
 	}
 }

@@ -1,4 +1,4 @@
-package com.musketeers.foolish_guns;
+package com.musketeers.foolish_guns.particles;
 
 import com.musketeers.foolish_guns.utils.RegistrationUtils;
 import net.fabricmc.fabric.api.particle.v1.FabricParticleTypes;
