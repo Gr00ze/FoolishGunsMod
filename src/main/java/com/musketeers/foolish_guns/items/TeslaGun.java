@@ -1,10 +1,12 @@
 package com.musketeers.foolish_guns.items;
 
-import com.musketeers.foolish_guns.GunParticles;
+import com.musketeers.foolish_guns.FoolishGuns;
+import com.musketeers.foolish_guns.particles.GunParticles;
 import net.minecraft.core.Holder;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
@@ -13,6 +15,7 @@ import net.minecraft.world.damagesource.*;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -31,30 +34,33 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.time.LocalDate;
 import java.time.Month;
-import java.time.temporal.ChronoField;
 import java.util.Optional;
 
+import static com.musketeers.foolish_guns.components.DataComponentList.IS_LOADING;
+
 public class TeslaGun extends ExtendedGeoItem {
+
+    private enum SeasonalMode {HALLOWEEN, CHRISTMAS, NORMAL}
+
+    //Gecko lib settings
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     private static final RawAnimation CHARGE_ANIMATION = RawAnimation.begin().thenPlay("animation.gun_model.tesla.charge");
     private static final RawAnimation DISCHARGE_ANIMATION = RawAnimation.begin().thenPlay("animation.gun_model.tesla.discharge");
     private static final String controllerName = "Gun_Controller";
     private static final String chargeAnimationName = "charge";
     private static final String dischargeAnimationName = "discharge";
-    private boolean isLoading = false;
-    private ServerLevel currentLevel;
-    private Player currentPlayer;
-    private InteractionHand currentHand;
+    //Settings
+    private static final int maxDamage = 10;
+
     private int holdTime = 0;
-    private static int maxDamage = 10;
-    private boolean speed = true;
+
 
     public TeslaGun(Properties properties) {
         super(properties);
         GeoItem.registerSyncedAnimatable(this);
     }
 
-    public static Item.Properties getItemProperties(){
+    public static Item.Properties getItemProperties() {
         return new Item.Properties().stacksTo(1).useCooldown(0.5F).durability(maxDamage);
     }
 
@@ -71,77 +77,111 @@ public class TeslaGun extends ExtendedGeoItem {
         return PlayState.CONTINUE;
     }
 
-
-
     @Override
     public AnimatableInstanceCache getAnimatableInstanceCache() {
         return cache;
     }
 
-
+    @Override
+    public void onUseTick(Level level, LivingEntity livingEntity, ItemStack stack, int remainingUseDuration) {
+        super.onUseTick(level, livingEntity, stack, remainingUseDuration);
+        if (livingEntity instanceof ServerPlayer player) {
+            player.setPose(Pose.SHOOTING);
+        }
+    }
 
     @Override
     public @NotNull InteractionResult use(Level level, Player player, InteractionHand hand) {
-        //player.setPose(Pose.SHOOTING);
-        if (!(level instanceof ServerLevel serverLevel) || isLoading || player.getItemInHand(hand).getDamageValue() == maxDamage) return InteractionResult.FAIL;
-        isLoading = true;
-
-        this.currentLevel = serverLevel;
-        this.currentPlayer = player;
-        this.currentHand = hand;
-        //player hand
-
-        //animation
-        triggerAnim(player, GeoItem.getOrAssignId(player.getItemInHand(hand), serverLevel), controllerName, chargeAnimationName);
-        //charge sound
-        currentLevel.playSound(null,currentPlayer.getX(),currentPlayer.getY(),currentPlayer.getZ(),SoundEvents.WITHER_AMBIENT, SoundSource.PLAYERS, 2F, 0.5F);
+        if (!(level instanceof ServerLevel serverLevel))
+            return InteractionResult.FAIL;
+        //first hand
+        InteractionResult result = this.useGun(serverLevel, (ServerPlayer) player, hand);
         player.startUsingItem(hand);
+
+        //second hand
+        InteractionHand otherHand = getOtherPlayerHand(hand);
+        ItemStack otherStack = player.getItemInHand(otherHand);
+        if (otherStack.getItem() instanceof TeslaGun) {
+            useGun(serverLevel, (ServerPlayer) player, otherHand);
+        }
+
+        return result;
+    }
+
+    public @NotNull InteractionResult useGun(ServerLevel serverLevel, ServerPlayer player, InteractionHand hand) {
+
+        FoolishGuns.LOGGER.info("Player {} charging the gun in hand {}", player.getName(), hand.name());
+
+        serverLevel.playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.WITHER_AMBIENT, SoundSource.PLAYERS, 2F, 0.5F);
+
+        triggerAnim(player, GeoItem.getOrAssignId(player.getItemInHand(hand), serverLevel), controllerName, chargeAnimationName);
+        //With PASS the gun will still charge, but it will let the offhand to be used
+
+        //Can be added a check to disable the second call if not TeslaGun
         return InteractionResult.CONSUME;
     }
+
 
     @Override
     public boolean releaseUsing(ItemStack itemStack, Level level, LivingEntity livingEntity, int holdTime) {
         this.holdTime = holdTime;
-        if(currentLevel !=null && currentPlayer !=null && currentHand!=null){
-            triggerAnim(currentPlayer, GeoItem.getOrAssignId(currentPlayer.getItemInHand(currentHand), currentLevel), controllerName, dischargeAnimationName);
-            //speed = !speed;
-            shoot();
-            if (!currentPlayer.isCreative())
+        boolean releaseUsing = super.releaseUsing(itemStack, level, livingEntity, holdTime);
+
+        if (!(livingEntity instanceof Player player))return releaseUsing;
+
+        InteractionHand usedHand = player.getUsedItemHand();
+        //first hand
+        this.releaseGun(itemStack, level, player, holdTime, isRightHand(player, usedHand));
+
+        //second hand
+        InteractionHand otherHand = getOtherPlayerHand(player.getUsedItemHand());
+        ItemStack otherStack = player.getItemInHand(otherHand);
+        if (otherStack.getItem() instanceof TeslaGun) {
+            this.releaseGun(otherStack, level, player, holdTime, isRightHand(player, otherHand));;
+        }
+        return releaseUsing;
+    }
+
+    private void releaseGun(ItemStack itemStack, Level level, Player player, int holdTime, boolean isRightHand) {
+        if (level instanceof ServerLevel serverLevel){// implicit ServerPlayer
+            triggerAnim(player, GeoItem.getOrAssignId(itemStack, serverLevel), controllerName, dischargeAnimationName);
+            shoot(serverLevel, player, isRightHand);
+            if (!player.isCreative())
                 itemStack.setDamageValue(itemStack.getDamageValue()+1);
         }
-        return super.releaseUsing(itemStack, level, livingEntity, holdTime);
-    }
-    public void shoot(){
-        if (!isLoading) return;
-        isLoading = false;
-        LocalDate localDate = LocalDate.now();
-        if(true || localDate.getDayOfMonth() == 31 && localDate.getMonth() == Month.OCTOBER){
-            spawnSpookyParticles(currentLevel,currentPlayer);
-            currentLevel.playSound(null,currentPlayer.getX(),currentPlayer.getY(),currentPlayer.getZ(),SoundEvents.BAT_LOOP, SoundSource.PLAYERS, 1F, 2.0F);
-            return;
-        }
-
-        this.spawnParticles(currentLevel,currentPlayer);
-        this.hitEnemy(currentLevel,currentPlayer);
-        //volume 0 - 1 - >1 distance
-        //pitch 0.5 - 1 - > 1 faster sound
-        //currentLevel.playSound(null,currentPlayer.getX(),currentPlayer.getY(),currentPlayer.getZ(),SoundEvents.SCULK_SHRIEKER_SHRIEK, SoundSource.PLAYERS, 1F, 2.0F);
-        currentLevel.playSound(null,currentPlayer.getX(),currentPlayer.getY(),currentPlayer.getZ(),SoundEvents.LIGHTNING_BOLT_THUNDER, SoundSource.PLAYERS, 1F, 2.0F);
     }
 
-    private void spawnParticles(ServerLevel level, Player player) {
-        //particles
+    public void shoot(ServerLevel serverLevel, Player player, boolean isRightHand){
 
         Vec3 eyePos = player.getEyePosition();
 
         Vec3 look = player.getLookAngle();
 
-        // offset
-        boolean isMainHandAndRightArm = player.getUsedItemHand() == InteractionHand.MAIN_HAND && player.getMainArm() == HumanoidArm.RIGHT;
-        boolean isOffHandAndLeftArm = player.getUsedItemHand() == InteractionHand.OFF_HAND && player.getMainArm() == HumanoidArm.LEFT;
-        int handFactor = isMainHandAndRightArm || isOffHandAndLeftArm ? 1:-1;
 
-        Vec3 horizontalAdjustment = look.cross(new Vec3(0, 1, 0)).normalize().scale(0.8 * handFactor);  // spostamento a destra
+        switch (getSeasonalMode()) {
+            case HALLOWEEN -> {
+                this.spawnSpookyParticles(serverLevel,  eyePos, look, isRightHand?0.4: -0.4);
+                serverLevel.playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.BAT_LOOP, SoundSource.PLAYERS, 1F, 2.0F);
+            }
+            case CHRISTMAS -> {
+                this.spawnParticles(serverLevel, eyePos, look, isRightHand?1: -1);
+                serverLevel.playSound(null,player.getX(),player.getY(),player.getZ(),SoundEvents.SNOW_HIT, SoundSource.PLAYERS, 1F, 0.5F);
+            }
+            default -> {
+                this.spawnParticles(serverLevel, eyePos, look, isRightHand?1: -1);
+                //volume 0 - 1 - >1 distance
+                //pitch 0.5 - 1 - > 1 faster sound
+                serverLevel.playSound(null,player.getX(),player.getY(),player.getZ(),SoundEvents.LIGHTNING_BOLT_THUNDER, SoundSource.PLAYERS, 1F, 2.0F);
+            }
+
+        }
+
+        this.hitEnemy(serverLevel,player);
+    }
+
+    private void spawnParticles(ServerLevel level, Vec3 eyePos, Vec3 look, double offset) {
+
+        Vec3 horizontalAdjustment = look.cross(new Vec3(0, 1, 0)).normalize().scale(0.8 * offset);  // spostamento a destra
         Vec3 verticalAdjustment = new Vec3(0, 1, 0).scale(-0.1);
 
         for (int i = 2; i < -holdTime; i++) {
@@ -155,10 +195,7 @@ public class TeslaGun extends ExtendedGeoItem {
 
 
     }
-    private void spawnSpookyParticles(ServerLevel level, Player player) {
-        Vec3 eyePos = player.getEyePosition();
-        Vec3 look = player.getLookAngle().normalize();
-
+    private void spawnSpookyParticles(ServerLevel level, Vec3 eyePos, Vec3 look, double offset) {
         double radius = 0.3;          // quanto larga è la spirale
         double turnsPerBlock = 1.5;   // rotazioni per unità di distanza
         double spacing = 0.1;         // distanza tra particelle
@@ -168,11 +205,6 @@ public class TeslaGun extends ExtendedGeoItem {
         if (Math.abs(look.dot(up)) > 0.99) up = new Vec3(1, 0, 0);
         Vec3 right = look.cross(up).normalize();
         Vec3 upOrtho = right.cross(look).normalize();
-
-
-        boolean rightHand = (player.getUsedItemHand() == InteractionHand.MAIN_HAND && player.getMainArm() == HumanoidArm.RIGHT)
-                || (player.getUsedItemHand() == InteractionHand.OFF_HAND && player.getMainArm() == HumanoidArm.LEFT);
-        Vec3 handOffset = right.scale(rightHand ? 0.4 : -0.4);
 
         for (double d = 2; d < -holdTime; d += spacing) {
             double angle = d * turnsPerBlock * 2 * Math.PI;
@@ -184,7 +216,7 @@ public class TeslaGun extends ExtendedGeoItem {
                     .add(look.scale(d))
                     .add(right.scale(offsetX))
                     .add(upOrtho.scale(offsetY))
-                    .add(handOffset)
+                    .add(offset)
                     .add(0, -0.1, 0);
 
             // velocità zero: la logica del movimento è nel particle client
@@ -242,9 +274,48 @@ public class TeslaGun extends ExtendedGeoItem {
 
     }
 
+    //utility
+    private SeasonalMode getSeasonalMode() {
+        LocalDate d = LocalDate.now();
+        Month m = d.getMonth();
+        int day = d.getDayOfMonth();
 
+        if (m == Month.OCTOBER && day == 31) return SeasonalMode.HALLOWEEN;
+        if (m == Month.DECEMBER && (day == 24 || day == 25)) return SeasonalMode.CHRISTMAS;
+        return SeasonalMode.NORMAL;
+    }
 
+    private InteractionHand getOtherPlayerHand(InteractionHand hand) {
+        return hand == InteractionHand.MAIN_HAND? InteractionHand.OFF_HAND: InteractionHand.MAIN_HAND;
+    }
 
+    private double getOffsetWithPlayerHand(Player player, InteractionHand hand, double valueIfLeft, double valueIfRight){
+        return isRightHand(player, hand) ? valueIfLeft : -valueIfRight;
+    }
 
+    private boolean isRightHand(Player player, InteractionHand hand){
+        return (hand == InteractionHand.MAIN_HAND && player.getMainArm() == HumanoidArm.RIGHT) ||
+                        (hand == InteractionHand.OFF_HAND && player.getMainArm() == HumanoidArm.LEFT);
+    }
+
+    private boolean isRightHand(Player player){
+        return isRightHand(player, player.getUsedItemHand());
+    }
+    private void triggerAnimationOnBothHandsIfPossible(InteractionHand useHand, Player player, ServerLevel level, String controllerName, String animationName){
+        //animation
+        triggerAnim(player, GeoItem.getOrAssignId(player.getItemInHand(useHand), level), controllerName, animationName);
+
+        InteractionHand otherHand = getOtherPlayerHand(useHand);
+        ItemStack stack = player.getItemInHand(otherHand);
+        if(stack.getItem() instanceof TeslaGun){
+            //other hand animation
+            triggerAnim(player, GeoItem.getOrAssignId(player.getItemInHand(otherHand), level), controllerName, animationName);
+        }
+
+    }
+
+    private boolean canBeUsed(ItemStack stack){
+        return stack.getDamageValue() < maxDamage && !stack.getOrDefault(IS_LOADING, false);
+    };
 
 }
