@@ -37,10 +37,11 @@ import java.time.Month;
 import java.util.Optional;
 
 import static com.musketeers.foolish_guns.components.DataComponentList.IS_LOADING;
+import static com.musketeers.foolish_guns.utils.Season.getSeasonalMode;
 
 public class TeslaGun extends ExtendedGeoItem {
 
-    private enum SeasonalMode {HALLOWEEN, CHRISTMAS, NORMAL}
+
 
     //Gecko lib settings
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
@@ -356,15 +357,7 @@ public class TeslaGun extends ExtendedGeoItem {
     }
 
     //utility
-    private SeasonalMode getSeasonalMode() {
-        LocalDate d = LocalDate.now();
-        Month m = d.getMonth();
-        int day = d.getDayOfMonth();
 
-        if (m == Month.OCTOBER && day == 31) return SeasonalMode.HALLOWEEN;
-        if (m == Month.DECEMBER && (day == 24 || day == 25)) return SeasonalMode.CHRISTMAS;
-        return SeasonalMode.CHRISTMAS;
-    }
 
     private InteractionHand getOtherPlayerHand(InteractionHand hand) {
         return hand == InteractionHand.MAIN_HAND? InteractionHand.OFF_HAND: InteractionHand.MAIN_HAND;
