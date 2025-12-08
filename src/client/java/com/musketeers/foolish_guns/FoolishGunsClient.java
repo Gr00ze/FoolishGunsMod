@@ -1,8 +1,8 @@
 package com.musketeers.foolish_guns;
 
+import com.musketeers.foolish_guns.particle.ParticleList;
 import com.musketeers.foolish_guns.render.EntityRenderList;
 import com.musketeers.foolish_guns.render.ItemRenderer;
-import com.musketeers.foolish_guns.render.RenderTest;
 import net.fabricmc.api.ClientModInitializer;
 
 
@@ -14,6 +14,6 @@ public class FoolishGunsClient implements ClientModInitializer {
         EntityRenderList.initialize();
         //RenderTest.test();
         CustomInputsTest.registerEvents();
-        ParticleRendering.initialize();
+        ParticleList.initialize();
 	}
 }
