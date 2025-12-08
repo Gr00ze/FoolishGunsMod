@@ -85,9 +85,49 @@ public class TeslaGun extends ExtendedGeoItem {
     @Override
     public void onUseTick(Level level, LivingEntity livingEntity, ItemStack stack, int remainingUseDuration) {
         super.onUseTick(level, livingEntity, stack, remainingUseDuration);
-        if (livingEntity instanceof ServerPlayer player) {
-            player.setPose(Pose.SHOOTING);
+        if (!(livingEntity instanceof ServerPlayer player)) return;
+        player.setPose(Pose.SHOOTING);
+        ServerLevel serverLevel = (ServerLevel) level;
+        Vec3 pos = player.position();
+        switch (getSeasonalMode()) {
+            case HALLOWEEN -> {
+
+            }
+            case CHRISTMAS -> {
+
+                int tick = player.tickCount % 60; // ciclo di 3 secondi (20 tick = 1 sec)
+
+                if(tick == 0) {
+                    serverLevel.playSound(null, player.getX(), player.getY(), player.getZ(),
+                            SoundEvents.NOTE_BLOCK_CHIME, SoundSource.PLAYERS, 0.5f, 0.5f); // 1 secondo
+                } else if(tick == 15) {
+                    serverLevel.playSound(null, player.getX(), player.getY(), player.getZ(),
+                            SoundEvents.NOTE_BLOCK_CHIME, SoundSource.PLAYERS, 0.5f, 0.66f); // 2 secondo
+                } else if(tick == 30) {
+                    serverLevel.playSound(null, player.getX(), player.getY(), player.getZ(),
+                            SoundEvents.NOTE_BLOCK_CHIME, SoundSource.PLAYERS, 0.5f, 0.74f); // 3 secondo
+                }
+                else if(tick == 45) {
+                    serverLevel.playSound(null, player.getX(), player.getY(), player.getZ(),
+                            SoundEvents.NOTE_BLOCK_CHIME, SoundSource.PLAYERS, 0.5f, 0.5f); // 3 secondo
+                }
+
+
+
+
+                if (player.tickCount % 10 == 0) {
+                    serverLevel.playSound(null, player.getX(), player.getY(), player.getZ(),
+                            SoundEvents.ELYTRA_FLYING, SoundSource.PLAYERS, 0.05f, 5.6f);
+                }
+            }
+            default -> {
+                //volume 0 - 1 - >1 distance
+                //pitch 0.5 - 1 - > 1 faster sound
+
+            }
+
         }
+
     }
 
     @Override
@@ -112,7 +152,25 @@ public class TeslaGun extends ExtendedGeoItem {
 
         FoolishGuns.LOGGER.info("Player {} charging the gun in hand {}", player.getName(), hand.name());
 
-        serverLevel.playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.WITHER_AMBIENT, SoundSource.PLAYERS, 2F, 0.5F);
+        switch (getSeasonalMode()) {
+            case HALLOWEEN -> {
+                serverLevel.playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.WITHER_AMBIENT, SoundSource.PLAYERS, 2F, 0.5F);
+            }
+            case CHRISTMAS -> {
+                Vec3 pos = player.position();
+
+                serverLevel.playSound(null, player.getX(), player.getY(), player.getZ(),
+                        SoundEvents.NOTE_BLOCK_BELL, SoundSource.PLAYERS, 0.3f, 1.0f);
+
+            }
+            default -> {
+                //volume 0 - 1 - >1 distance
+                //pitch 0.5 - 1 - > 1 faster sound
+                serverLevel.playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.WITHER_AMBIENT, SoundSource.PLAYERS, 2F, 0.5F);
+            }
+
+        }
+
 
         triggerAnim(player, GeoItem.getOrAssignId(player.getItemInHand(hand), serverLevel), controllerName, chargeAnimationName);
         //With PASS the gun will still charge, but it will let the offhand to be used
@@ -154,8 +212,8 @@ public class TeslaGun extends ExtendedGeoItem {
     public void shoot(ServerLevel serverLevel, Player player, boolean isRightHand){
 
         Vec3 eyePos = player.getEyePosition();
-
         Vec3 look = player.getLookAngle();
+        Vec3 pos = player.position();
 
 
         switch (getSeasonalMode()) {
@@ -164,8 +222,10 @@ public class TeslaGun extends ExtendedGeoItem {
                 serverLevel.playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.BAT_LOOP, SoundSource.PLAYERS, 1F, 2.0F);
             }
             case CHRISTMAS -> {
-                this.spawnParticles(serverLevel, eyePos, look, isRightHand?1: -1);
-                serverLevel.playSound(null,player.getX(),player.getY(),player.getZ(),SoundEvents.SNOW_HIT, SoundSource.PLAYERS, 1F, 0.5F);
+                this.spawnChristmasParticles(serverLevel, eyePos, look, isRightHand?1: -1);
+
+                serverLevel.playSound(null, player.getX(), player.getY(), player.getZ(),
+                        SoundEvents.AMETHYST_CLUSTER_BREAK, SoundSource.PLAYERS, 0.6f, 1.0f);
             }
             default -> {
                 this.spawnParticles(serverLevel, eyePos, look, isRightHand?1: -1);
@@ -177,6 +237,27 @@ public class TeslaGun extends ExtendedGeoItem {
         }
 
         this.hitEnemy(serverLevel,player);
+    }
+
+    private void spawnChristmasParticles(ServerLevel level, Vec3 eyePos, Vec3 look, int offset) {
+        Vec3 horizontalAdjustment = look.cross(new Vec3(0, 1, 0)).normalize().scale(0.8 * offset);  // spostamento a destra
+        Vec3 verticalAdjustment = new Vec3(0, 1, 0).scale(-0.1);
+
+        for (int i = 2; i < -holdTime; i++) {
+            Vec3 pos = eyePos
+                    .add(look.scale(i))
+                    .add(horizontalAdjustment)
+                    .add(verticalAdjustment);
+            level.sendParticles(ParticleTypes.SNOWFLAKE,pos.x,pos.y,pos.z, 0,0,0,0,0);
+            level.sendParticles(ParticleTypes.GLOW,pos.x,pos.y,pos.z, 0,0,0,0,0);
+            level.sendParticles(ParticleTypes.GLOW_SQUID_INK,pos.x,pos.y,pos.z, 0,0,0,0,0);
+            level.sendParticles(ParticleTypes.CLOUD,pos.x,pos.y,pos.z, 0,0,0,0,0);
+            level.sendParticles(ParticleTypes.CRIMSON_SPORE,pos.x,pos.y,pos.z, 50,0,0,0,0);
+            level.sendParticles(ParticleTypes.FIREWORK, pos.x,pos.y,pos.z, 1,0,0,0,0);
+
+
+        }
+
     }
 
     private void spawnParticles(ServerLevel level, Vec3 eyePos, Vec3 look, double offset) {
@@ -282,7 +363,7 @@ public class TeslaGun extends ExtendedGeoItem {
 
         if (m == Month.OCTOBER && day == 31) return SeasonalMode.HALLOWEEN;
         if (m == Month.DECEMBER && (day == 24 || day == 25)) return SeasonalMode.CHRISTMAS;
-        return SeasonalMode.NORMAL;
+        return SeasonalMode.CHRISTMAS;
     }
 
     private InteractionHand getOtherPlayerHand(InteractionHand hand) {
