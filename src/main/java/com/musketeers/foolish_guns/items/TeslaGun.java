@@ -118,13 +118,12 @@ public class TeslaGun extends ExtendedGeoItem {
     public @NotNull InteractionResult useGun(ServerLevel serverLevel, ServerPlayer player, InteractionHand hand) {
 
         FoolishGuns.LOGGER.info("Player {} charging the gun in hand {}", player.getName(), hand.name());
-
+        Vec3 pos = player.position();
         switch (getSeasonalMode()) {
             case HALLOWEEN -> {
                 serverLevel.playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.WITHER_AMBIENT, SoundSource.PLAYERS, 2F, 0.5F);
             }
             case CHRISTMAS -> {
-                Vec3 pos = player.position();
 
                 serverLevel.playSound(null, player.getX(), player.getY(), player.getZ(),
                         SoundEvents.NOTE_BLOCK_BELL, SoundSource.PLAYERS, 0.3f, 1.0f);
@@ -133,7 +132,17 @@ public class TeslaGun extends ExtendedGeoItem {
             default -> {
                 //volume 0 - 1 - >1 distance
                 //pitch 0.5 - 1 - > 1 faster sound
-                serverLevel.playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.WITHER_AMBIENT, SoundSource.PLAYERS, 2F, 0.5F);
+                // Ronzio elettrico iniziale
+//                serverLevel.playSound(null, pos.x, pos.y, pos.z,
+//                        SoundEvents.BEACON_AMBIENT, SoundSource.PLAYERS, 0.6f, 0.7f);
+//
+//                // Scintilla / energia
+//                serverLevel.playSound(null, pos.x, pos.y, pos.z,
+//                        SoundEvents.REDSTONE_TORCH_BURNOUT, SoundSource.PLAYERS, 0.4f, 1.8f);
+//
+//                // Carica che sale
+//                serverLevel.playSound(null, pos.x, pos.y, pos.z,
+//                        SoundEvents.TRIDENT_THUNDER, SoundSource.PLAYERS, 0.3f, 1.4f);
             }
 
         }
@@ -187,7 +196,18 @@ public class TeslaGun extends ExtendedGeoItem {
             default -> {
                 //volume 0 - 1 - >1 distance
                 //pitch 0.5 - 1 - > 1 faster sound
+                int chargeTicks = player.getUseItemRemainingTicks();
+                float progress = 1f - (chargeTicks / 20f); // 0 → 1 in ~1s
 
+                float pitch = 0.6f + (progress * 0.8f); // sale gradualmente
+                float volume = 0.3f + (progress * 0.4f);
+
+                serverLevel.playSound(null,
+                        player.getX(), player.getY(), player.getZ(),
+                        SoundEvents.BEACON_AMBIENT,
+                        SoundSource.PLAYERS,
+                        volume,
+                        pitch);
             }
 
         }
@@ -239,7 +259,7 @@ public class TeslaGun extends ExtendedGeoItem {
 
         Vec3 eyePos = player.getEyePosition();
         Vec3 look = player.getLookAngle();
-
+        Vec3 pos = player.position();
         switch (getSeasonalMode()) {
             case HALLOWEEN -> {
                 this.spawnSpookyParticles(serverLevel,  eyePos, look, isRightHand?0.4: -0.4, (int)power);
@@ -255,7 +275,21 @@ public class TeslaGun extends ExtendedGeoItem {
                 this.spawnParticles(serverLevel, eyePos, look, isRightHand?1: -1, (int)power);
                 //volume 0 - 1 - >1 distance
                 //pitch 0.5 - 1 - > 1 faster sound
-                serverLevel.playSound(null,player.getX(),player.getY(),player.getZ(),SoundEvents.LIGHTNING_BOLT_THUNDER, SoundSource.PLAYERS, 1F, 2.0F);
+                serverLevel.playSound(null, pos.x, pos.y, pos.z,
+                        SoundEvents.GUARDIAN_ATTACK,
+                        SoundSource.PLAYERS,
+                        0.6f,
+                        1.6f);
+                serverLevel.playSound(null, pos.x, pos.y, pos.z,
+                        SoundEvents.LIGHTNING_BOLT_THUNDER,
+                        SoundSource.PLAYERS,
+                        0.9f,
+                        1.9f);
+                serverLevel.playSound(null, pos.x, pos.y, pos.z,
+                        SoundEvents.TRIDENT_THUNDER,
+                        SoundSource.PLAYERS,
+                        0.4f,
+                        1.4f);
             }
 
         }
@@ -309,17 +343,52 @@ public class TeslaGun extends ExtendedGeoItem {
 
     private void spawnParticles(ServerLevel level, Vec3 eyePos, Vec3 look, double offset, int rayLength) {
 
-        Vec3 horizontalAdjustment = look.cross(new Vec3(0, 1, 0)).normalize().scale(0.8 * offset);  // spostamento a destra
-        Vec3 verticalAdjustment = new Vec3(0, 1, 0).scale(-0.1);
+        Vec3 right = look.cross(new Vec3(0, 1, 0)).normalize().scale(0.8 * offset);
+        Vec3 up = new Vec3(0, 1, 0).scale(-0.1);
 
-        for (int i = 2; i < rayLength; i++) {
+        for (int i = 1; i < rayLength; i++) {
             Vec3 pos = eyePos
                     .add(look.scale(i))
-                    .add(horizontalAdjustment)
-                    .add(verticalAdjustment);
-            level.sendParticles(ParticleTypes.SONIC_BOOM,pos.x,pos.y,pos.z, 0,0,0,0,0);
+                    .add(right)
+                    .add(up);
 
+            // green circle particle
+            level.sendParticles(
+                    ParticleTypes.SONIC_BOOM,
+                    pos.x, pos.y, pos.z,
+                    0,
+                    0, 0, 0,
+                    0
+            );
+
+            // glow inside circle
+            level.sendParticles(
+                    ParticleTypes.END_ROD,
+                    pos.x, pos.y, pos.z,
+                    2,
+                    0, 0, 0,
+                    0.02
+            );
+
+            // initial centered tinty spark particle
+            level.sendParticles(
+                    ParticleTypes.ELECTRIC_SPARK,
+                    pos.x, pos.y, pos.z,
+                    3,
+                    0.01, 0.01, 0.01,
+                    0.05
+            );
         }
+
+        // White effect
+        Vec3 flashPos = eyePos.add(look.scale(0.4));
+        level.sendParticles(
+                ParticleTypes.FLASH,
+                flashPos.x, flashPos.y, flashPos.z,
+                1,
+                0, 0, 0,
+                0
+        );
 
 
     }
