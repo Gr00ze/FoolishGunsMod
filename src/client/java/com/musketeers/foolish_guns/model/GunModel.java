@@ -8,7 +8,7 @@ import software.bernie.geckolib.renderer.base.GeoRenderState;
 import static com.musketeers.foolish_guns.FoolishGuns.MOD_ID;
 import static com.musketeers.foolish_guns.utils.Season.getSeasonalMode;
 
-public class GunModel extends GeoModel<TeslaGun> {
+public class GunModel<T extends TeslaGun> extends GeoModel<T> {
     private final ResourceLocation model = ResourceLocation.fromNamespaceAndPath(MOD_ID, "geckolib/models/tesla_gun_model.geo.json");
     private final ResourceLocation defaultTexture = ResourceLocation.fromNamespaceAndPath(MOD_ID, "textures/item/tesla_gun.png");
     private final ResourceLocation christmasTexture = ResourceLocation.fromNamespaceAndPath(MOD_ID, "textures/item/tesla_gun_christmas.png");
