@@ -11,7 +11,7 @@ public class Season {
         int day = d.getDayOfMonth();
 
         if (m == Month.OCTOBER && day == 31) return SeasonalMode.HALLOWEEN;
-        if (m == Month.DECEMBER && (day == 24 || day == 25)) return SeasonalMode.CHRISTMAS;
-        return SeasonalMode.CHRISTMAS;
+        if ((m == Month.DECEMBER && day >= 8) || (m == Month.JANUARY && day <= 6)) return SeasonalMode.CHRISTMAS;
+        return SeasonalMode.NORMAL;
     }
 }
