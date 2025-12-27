@@ -40,10 +40,8 @@ import static com.musketeers.foolish_guns.utils.Season.getSeasonalMode;
 
 public class TeslaGun extends ExtendedGeoItem {
 
-
-
     //Gecko lib settings
-    private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
+
     private static final RawAnimation CHARGE_ANIMATION = RawAnimation.begin().thenPlay("animation.gun_model.tesla.charge");
     private static final RawAnimation DISCHARGE_ANIMATION = RawAnimation.begin().thenPlay("animation.gun_model.tesla.discharge");
     private static final RawAnimation ROTATION_ANIMATION = RawAnimation.begin().thenLoop("animation.gun_model.tesla.rotate");
@@ -52,6 +50,8 @@ public class TeslaGun extends ExtendedGeoItem {
             SerializableDataTicket.ofFloat(id("tesla_gun_glow"));
     public static final SerializableDataTicket<Float> ROTATION_SPEED =
             SerializableDataTicket.ofFloat(id("tesla_gun_rotation_speed"));
+    public static final SerializableDataTicket<Boolean> ROTATION_INITIALIZED =
+            SerializableDataTicket.ofBoolean(id("tesla_gun_rotation_init"));
 
     private static final String controllerName = "Gun_Controller";
     private static final String controllerName2 = "Gun_Controller2";
@@ -59,6 +59,10 @@ public class TeslaGun extends ExtendedGeoItem {
     private static final String chargeAnimationName = "charge";
     private static final String dischargeAnimationName = "discharge";
     private static final String rotationAnimationName = "rotate";
+
+    private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
+    private AnimationController<TeslaGun> chargeController;
+    private AnimationController<TeslaGun> rotationController;
     //Settings
     private static final int maxDamage = 10;
 
@@ -75,38 +79,40 @@ public class TeslaGun extends ExtendedGeoItem {
 
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        AnimationController<TeslaGun> chargeController =new AnimationController<>(controllerName, 5, this::animationHandler)
+        chargeController = new AnimationController<>(controllerName, 5, this::animationHandler)
                 .triggerableAnim(chargeAnimationName, CHARGE_ANIMATION)
                 .triggerableAnim(dischargeAnimationName, DISCHARGE_ANIMATION);
 
+        rotationController = new AnimationController<>(controllerName2, 0, this::rotationAnimationHandler);
+
         controllers.add(chargeController);
-
-        controllers.add(new AnimationController<>(controllerName2, 1,
-                animationTest -> {
-            Float speed = animationTest.manager().getAnimatableData(ROTATION_SPEED);
-            speed = speed != null ? speed: 1F;
-
-            animationTest.manager().setAnimatableData(ROTATION_SPEED, 1f);
-
-            RawAnimation currentChargeAnimation = chargeController.getCurrentRawAnimation();
-            if (currentChargeAnimation != null && currentChargeAnimation == CHARGE_ANIMATION){
-                speed = Math.min(speed+0.05F, 30);
-            }else {
-                speed = Math.max(speed-0.05F, 1);
-            }
-            animationTest.manager().setAnimatableData(ROTATION_SPEED, speed);
-
-            animationTest.setControllerSpeed(speed);
-
-            animationTest.setAnimation(ROTATION_ANIMATION);
-            return PlayState.CONTINUE;
-        }));
+        controllers.add(rotationController);
     }
 
     private PlayState animationHandler(AnimationTest<TeslaGun> animationTest) {
 
         return PlayState.CONTINUE;
     }
+
+    private PlayState rotationAnimationHandler(AnimationTest<TeslaGun> animationTest) {
+        Float speed = animationTest.manager().getAnimatableData(ROTATION_SPEED);
+        speed = speed != null ? speed: 1F;
+
+        RawAnimation currentChargeAnimation = chargeController.getCurrentRawAnimation();
+        if (currentChargeAnimation != null && currentChargeAnimation == CHARGE_ANIMATION){
+            speed = Math.min(speed+0.05F, 30);
+        }else {
+            speed = Math.max(speed-0.05F, 1);
+        }
+        animationTest.manager().setAnimatableData(ROTATION_SPEED, speed);
+
+        animationTest.setControllerSpeed(speed);
+
+        animationTest.setAnimation(ROTATION_ANIMATION);
+
+        return PlayState.CONTINUE;
+    }
+
 
     @Override
     public AnimatableInstanceCache getAnimatableInstanceCache() {
@@ -315,16 +321,27 @@ public class TeslaGun extends ExtendedGeoItem {
     }
 
     @Override
-    public void inventoryTick(ItemStack itemStack,
-                              ServerLevel serverLevel,
-                              Entity entity,
-                              @Nullable EquipmentSlot slot
+    public void inventoryTick(
+            ItemStack itemStack,
+            ServerLevel serverLevel,
+            Entity entity,
+            @Nullable EquipmentSlot slot
     ) {
         if(!(entity instanceof Player player))return;
         if(player.isUsingItem())return;
         if(slot == EquipmentSlot.MAINHAND || slot == EquipmentSlot.OFFHAND) {
             dimmingTeslaGun(itemStack, player);
         }
+        long id = GeoItem.getId(itemStack);
+
+
+        AnimatableManager<TeslaGun> man = this.getAnimatableInstanceCache().getManagerForId(id);
+        AnimationController<TeslaGun> ctrl = man.getAnimationControllers().get(controllerName2);
+
+        if(ctrl.getAnimationState() == AnimationController.State.STOPPED){
+            ctrl.forceAnimationReset();
+        }
+
     }
 
     private void dimmingTeslaGun(
